@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>RideNow — завершаем регистрацию</title>
+  <style>
+    :root{ --ink:#f3f7ff; --muted:#c4ceda; --stroke:rgba(255,255,255,.18); --accent:#ffb668; --accent-2:#9de9d7; }
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+        url("image.png") center/cover no-repeat fixed;
+      display:grid; place-items:center; padding:16px;
+    }
+    .card{
+      width:min(720px,96vw); border-radius:22px; padding:18px; text-align:center;
+      background:linear-gradient(180deg, rgba(14,21,26,.85), rgba(14,21,26,.8));
+      border:1px solid var(--stroke); box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05)
+    }
+    .title{font-weight:900;font-size:22px;margin-bottom:6px}
+    .muted{color:var(--muted)}
+    .ok{margin-top:12px;display:inline-block;padding:10px 16px;border-radius:14px;font-weight:900;color:#0b0f12;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));text-decoration:none;border:0}
+    .log{margin-top:12px;text-align:left;max-height:40vh;overflow:auto;font-size:12px;color:#d8e5ff;background:rgba(0,0,0,.25);padding:10px;border-radius:10px}
+  </style>
+  <script defer src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Завершаем регистрацию…</div>
+    <div class="muted" id="status">Подождите пару секунд — сохраняем профиль.</div>
+    <pre class="log" id="log" aria-live="polite"></pre>
+    <a id="go" href="index.html" class="ok" style="display:none">Готово — перейти к входу</a>
+  </div>
+
+<script>
+const log = (m)=>{ const el=document.getElementById('log'); el.textContent += m + '\n'; };
+const setStatus = (t)=>{ document.getElementById('status').textContent = t; };
+const { createClient } = window.supabase;
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function dataURLtoBlob(dataURL){
+  if(!dataURL) return null;
+  const [meta, b64] = dataURL.split(',');
+  const mime = (meta.match(/:(.*?);/)||[])[1] || 'image/png';
+  const bin = atob(b64); const len = bin.length; const u8 = new Uint8Array(len);
+  for(let i=0;i<len;i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], {type:mime});
+}
+
+async function ensureSession(){
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
+  if(error || !user){ log('Нет активного пользователя (вероятно, ссылка устарела).'); throw new Error('No user'); }
+  return user;
+}
+
+async function upsertAll(){
+  setStatus('Проверяем сессию…');
+  const user = await ensureSession();
+
+  setStatus('Читаем черновик…');
+  const raw = localStorage.getItem('ridenow_profile_draft');
+  if(!raw){ log('Черновик не найден. Возможно, профиль уже создан или очищен.'); document.getElementById('go').style.display='inline-block'; return; }
+  const draft = JSON.parse(raw);
+
+  // 1) Профиль
+  setStatus('Сохраняем профиль…');
+  const profileRow = {
+    id: user.id,
+    full_name: draft.fullName || null,
+    phone: draft.phone || null,
+    birth_date: draft.birthISO || null,
+    role: draft.role || 'passenger',
+    city: draft.city || null,
+    avatar_url: null
+  };
+
+  // 2) Загрузки
+  async function uploadTo(bucket, path, dataURL){
+    if(!dataURL) return null;
+    const file = dataURLtoBlob(dataURL);
+    const { error: upErr } = await supabaseClient.storage.from(bucket).upload(path, file, { upsert:true });
+    if(upErr){ log(`upload err ${bucket}/${path}: ${upErr.message}`); return null; }
+    const { data:pub } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+    return pub?.publicUrl || null;
+  }
+
+  // аватар
+  if(draft.profilePhoto){
+    setStatus('Загружаем аватар…');
+    profileRow.avatar_url = await uploadTo('avatars', `${user.id}/${Date.now()}_avatar.png`, draft.profilePhoto);
+  }
+
+  // upsert profiles
+  const { error: profErr } = await supabaseClient.from('profiles').upsert(profileRow).select().single();
+  if(profErr){ log('profiles upsert error: '+profErr.message); throw profErr; }
+  log('profiles ok');
+
+  // 3) Если водитель — drivers + vehicles
+  if(draft.role === 'driver'){
+    setStatus('Сохраняем данные водителя…');
+    const driverRow = {
+      user_id: user.id,
+      is_verified: false,
+      is_draft: true
+    };
+    const { error: drvErr } = await supabaseClient.from('drivers').upsert(driverRow, { onConflict: 'user_id' }).select().single();
+    if(drvErr){ log('drivers upsert error: '+drvErr.message); throw drvErr; }
+    log('drivers ok');
+
+    const v = draft.vehicle || {};
+    const vehRow = {
+      user_id: user.id,
+      brand: v.brand || null, model: v.model || null, color: v.color || null, plate: v.plate || null,
+      year: v.year || null, is_draft: true,
+      photo1_url: null, photo2_url: null, photo3_url: null
+    };
+
+    if(v.photos){
+      setStatus('Загружаем фото авто…');
+      vehRow.photo1_url = await uploadTo('cars', `${user.id}/${Date.now()}_front.png`, v.photos.front);
+      vehRow.photo2_url = await uploadTo('cars', `${user.id}/${Date.now()}_frontSeats.png`, v.photos.frontSeats);
+      vehRow.photo3_url = await uploadTo('cars', `${user.id}/${Date.now()}_rearSeats.png`, v.photos.rearSeats);
+    }
+
+    const { error: vehErr } = await supabaseClient.from('vehicles').insert(vehRow);
+    if(vehErr){ log('vehicles insert error: '+vehErr.message); /* допустимо: может быть пусто */ }
+    else { log('vehicles ok'); }
+  }
+
+  // очистить черновик
+  localStorage.removeItem('ridenow_profile_draft');
+
+  setStatus('Готово! Профиль сохранён.');
+  document.getElementById('go').style.display='inline-block';
+}
+
+upsertAll().catch(err=>{
+  setStatus('Ошибка при сохранении. Попробуйте войти и завершить позже.');
+  log(err?.message || String(err));
+  document.getElementById('go').style.display='inline-block';
+});
+</script>
+</body>
+</html>

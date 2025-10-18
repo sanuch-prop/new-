@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Поиск — RideNow</title>
+  <style>
+    :root{
+      --ink:#eaf2ff; --muted:#a6b5cc; --stroke:rgba(255,255,255,.18);
+      --glass-1:rgba(14,21,26,.55); --glass-2:rgba(14,21,26,.35);
+      --g1:#ffb668; --g2:#9de9d7;
+      --gutter:16px;
+      --card-gap-bottom:12px;
+      --nav-h:92px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--ink);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+        url("image.png") center/cover no-repeat fixed;
+      padding: var(--gutter);
+      padding-bottom: calc(var(--gutter) + env(safe-area-inset-bottom));
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+
+    main.card{
+      width: min(760px, calc(100vw - var(--gutter)*2));
+      margin: 0 auto;
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22);
+      backdrop-filter: blur(16px) saturate(140%);
+      max-height: calc(100dvh - var(--nav-h) - var(--card-gap-bottom) - env(safe-area-inset-bottom));
+      overflow:auto; -webkit-overflow-scrolling:touch;
+    }
+    .inner{ padding:16px 16px 22px }
+
+    .brand{ font-weight:900; letter-spacing:.2px; display:flex; gap:8px; align-items:center; opacity:.95}
+    .brand .dot{width:8px;height:8px;border-radius:50%;background:#58e0ff;display:inline-block}
+    h1{ margin:8px 0 12px; font-size:26px; letter-spacing:.2px }
+
+    .block{ margin:12px 0; padding:12px; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06)); border:1px solid var(--stroke); }
+
+    .route-row{display:grid; grid-template-columns:1fr; gap:8px; align-items:center}
+    .pill-input{ display:flex; align-items:center; gap:10px; height:48px; padding:0 12px; border-radius:999px; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25); min-width:0; }
+    .pill-input .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex:0 0 10px }
+    .pill-input input{ flex:1; min-width:0; background:transparent; border:0; outline:0; color:var(--ink); font-size:15px; }
+
+    .tworow{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .mini-btn{ height:48px; border-radius:14px; border:1px solid var(--stroke); padding:0 12px; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); font-weight:800; cursor:pointer; }
+    .mini-btn > span:first-child { color: var(--ink); font-weight:900; }
+    .mini-btn .value{ color:var(--muted); font-weight:700; font-size:14px }
+
+    .chosen{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; grid-column:1/-1; }
+    .chip{ padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08)); font-size:14px; font-weight:700; }
+
+    .cta{ height:54px; border-radius:16px; width:100%; margin-top:14px; border:0; cursor:pointer; font-weight:900; font-size:18px; letter-spacing:.3px; color:#0b0f12; background:linear-gradient(90deg, var(--g1), var(--g2)); box-shadow:0 10px 24px rgba(183,167,255,.25); }
+
+    .results-title{ font-weight:900; margin:14px 6px 8px }
+
+    /* CARD + разделитель между карточками */
+    a.r-card{
+      display:block; color:inherit; text-decoration:none;
+      border-radius:20px; overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.18);
+      padding:14px 12px; cursor:pointer;
+      margin-bottom: var(--card-gap-bottom); /* ⬅ отступ между карточками */
+    }
+
+    .r-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+    .r-route{font-weight:900; font-size:20px}
+    .r-price{font-weight:900; color:#072e12; background:linear-gradient(90deg,#ffb668,#9de9d7); padding:6px 12px; border-radius:12px}
+    .r-driver{display:flex; gap:12px; align-items:center}
+    .r-ava{width:52px;height:52px;border-radius:50%;overflow:hidden;background:#777;flex-shrink:0}
+    .r-ava img{width:100%;height:100%;object-fit:cover}
+    .r-info{flex:1}
+    .r-name{display:flex; align-items:center; gap:6px; font-weight:800}
+    .r-ver{font-size:12px;padding:2px 6px;border-radius:8px;background:linear-gradient(90deg,#ffb668,#9de9d7);color:#0b0f12;font-weight:800}
+    .r-stars{color:#ffd479; font-size:14px}
+    .r-car{color:#a6b5cc; font-size:14px}
+    .r-details{display:flex; gap:12px; color:#a6b5cc; font-size:13px; margin:8px 0 10px}
+    .r-photos{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+    .r-ph{height:86px; border-radius:12px; overflow:hidden; background:#222; display:grid; place-items:center; color:#888}
+    .r-ph img{width:100%;height:100%;object-fit:cover}
+    .r-ptitle{font-weight:800; margin:8px 0 6px}
+    .r-faces{display:flex; gap:8px}
+    .r-face{width:40px;height:40px;border-radius:50%;border:2px dashed rgba(255,255,255,.35); display:grid;place-items:center;background:#222;color:#9fb0c9;font-weight:900}
+
+    .sheet{ position:fixed; left:0; right:0; bottom:-100%; margin:auto; width:min(760px, calc(100vw - var(--gutter)*2)); z-index:1002; border:1px solid var(--stroke); border-radius:16px 16px 0 0; background:linear-gradient(180deg, rgba(20,24,32,.90), rgba(20,24,32,.86)); box-shadow:0 -30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.22); backdrop-filter: blur(16px) saturate(160%); transition:bottom .22s ease, transform .22s ease; transform:translateY(12px); padding-bottom:16px; }
+    .sheet.open{ bottom:0; transform:translateY(0) }
+    .sheet .grip{ width:48px;height:5px;border-radius:999px;background:rgba(255,255,255,.25); margin:8px auto }
+    .sheet .body{ padding:8px 12px 0 }
+    .sheet-actions{ display:flex; gap:12px; padding:12px 12px 0 }
+    .btn{ flex:1; height:48px; border-radius:12px; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); color:var(--ink); font-weight:800; cursor:pointer; }
+    .btn.ok{ border:0; color:#0b0f12; background:linear-gradient(90deg,var(--g1),var(--g2)) }
+
+    .cal-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px 6px}
+    .navbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); color:var(--ink)}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:6px 2px}
+    .day{height:44px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06)); cursor:pointer}
+    .day.muted{opacity:.4}
+    .day.active{outline:2px solid #9de9d7}
+
+    .amen-grid{display:flex;flex-wrap:wrap;gap:10px; padding:0 4px}
+    .amen{padding:10px 12px;border-radius:14px;border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); font-weight:800;cursor:pointer; color:var(--ink)}
+    .amen.sel{ box-shadow:0 0 0 2px #9de9d7 inset }
+
+    /* Спец-кнопка «Только женщины» — отличается, но в нашем стиле */
+    .amen.women-only{
+      width:100%; margin:10px 0; padding:12px;
+      border-radius:14px; border:2px solid var(--g1);
+      background:linear-gradient(90deg, rgba(255,182,104,.12), rgba(157,233,215,.06));
+      color:var(--ink); font-weight:900; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer
+    }
+    .amen.women-only.sel{ box-shadow:0 0 0 3px rgba(157,233,215,.18) inset; }
+
+    .bottom-shell{ position:fixed; left:0; right:0; bottom:0; z-index:1001; padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+    .bottom-bar{ display:flex; justify-content:space-around; background: var(--glass-2); border-radius: 20px 20px 0 0; padding: 8px; backdrop-filter: blur(12px); }
+    .bn-tab{ flex:1; text-align:center; color:var(--ink); font-size:12px; text-decoration:none; padding:6px 0; }
+    .bn-tab .ico{ font-size:18px; display:block }
+    .bn-tab.active{ color: var(--g1) }
+
+    input{font-size:16px}
+    @media (max-width:380px){ .pill-input{ height:44px } .r-ph{ height:76px } }
+  </style>
+</head>
+<body>
+  <main class="card" id="appCard">
+    <div class="inner">
+      <div class="brand"><span class="dot"></span><span>RideNow</span></div>
+      <h1>Поиск</h1>
+
+      <!-- Маршрут -->
+      <div class="block">
+        <div class="route-row">
+          <label class="pill-input" for="from">
+            <span class="dot" style="background:#58e0ff"></span>
+            <input id="from" placeholder="Откуда (город)" autocomplete="off" />
+          </label>
+
+          <!-- swap удалён по ТЗ -->
+
+          <label class="pill-input" for="to">
+            <span class="dot" style="background:#ff825f"></span>
+            <input id="to" placeholder="Куда (город)" autocomplete="off" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Дата + Удобства -->
+      <div class="block tworow">
+        <button class="mini-btn" id="btnDate">
+          <span>Дата</span>
+          <span class="value" id="dateValue">выберите</span>
+        </button>
+        <button class="mini-btn" id="btnAmen">
+          <span>Удобства</span>
+          <span class="value" id="amenCount">нет</span>
+        </button>
+        <div class="chosen" id="chosenWrap"></div>
+      </div>
+
+      <button class="cta" id="findBtn">Найти</button>
+
+      <div class="results-title">Актуальная поездка (демо)</div>
+      <a class="r-card" href="passenger-trip.html" aria-label="Открыть информацию о поездке Киев — Одесса" data-women-only="true">
+        <div class="r-top">
+          <div class="r-route">Киев → Одесса</div>
+          <div class="r-price">550 ₴</div>
+        </div>
+        <div class="r-driver">
+          <div class="r-ava"><img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200" alt=""></div>
+          <div class="r-info">
+            <div class="r-name">Павел <span class="r-ver">✓</span></div>
+            <div class="r-stars">★★★★☆</div>
+            <div class="r-car">Toyota Camry</div>
+          </div>
+        </div>
+        <div class="r-details"><span>⏰ 08:30 → 13:15</span><span>🛣 475 км</span><span>🧍 3 места</span></div>
+        <div class="r-photos">
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1549924231-f129b911e442?w=400" alt=""></div>
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1606661125322-1d66f2e7f3a7?w=400" alt=""></div>
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1619767886558-c2b2e6d6c9f0?w=400" alt=""></div>
+        </div>
+        <div class="r-ptitle">Пассажиры</div>
+        <div class="r-faces">
+          <div class="r-face">?</div>
+          <div class="r-face">?</div>
+          <div class="r-face">?</div>
+        </div>
+      </a>
+
+      <!-- Доп. демо-карточка -->
+      <a class="r-card" href="passenger-active.html" aria-label="Открыть информацию о поездке Львов — Киев" data-women-only="false">
+        <div class="r-top">
+          <div class="r-route">Львов → Киев</div>
+          <div class="r-price">420 ₴</div>
+        </div>
+        <div class="r-driver">
+          <div class="r-ava"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200" alt=""></div>
+          <div class="r-info">
+            <div class="r-name">Игорь <span class="r-ver">✓</span></div>
+            <div class="r-stars">★★★☆☆</div>
+            <div class="r-car">Hyundai Accent</div>
+          </div>
+        </div>
+        <div class="r-details"><span>⏰ 09:00 → 12:10</span><span>🛣 310 км</span><span>🧍 2 места</span></div>
+        <div class="r-photos">
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=400" alt=""></div>
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400" alt=""></div>
+          <div class="r-ph"><img src="https://images.unsplash.com/photo-1493238792000-8113da705763?w=400" alt=""></div>
+        </div>
+        <div class="r-ptitle">Пассажиры</div>
+        <div class="r-faces">
+          <div class="r-face">?</div>
+          <div class="r-face">?</div>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <!-- Навигация -->
+  <nav class="bottom-shell" id="nav" aria-label="Навигация">
+    <div class="bottom-bar">
+      <a class="bn-tab" href="passenger-profile.html" title="Профиль"><div class="ico">👤</div>Профиль</a>
+      <a class="bn-tab" href="passenger-wallet.html" title="Кошелёк"><div class="ico">💳</div>Кошелёк</a>
+      <a class="bn-tab" href="passenger-active.html" title="Актуальная"><div class="ico">🚗</div>Актуальная</a>
+      <a class="bn-tab active" href="passenger-search.html" title="Поиск"><div class="ico">🔍</div>Поиск</a>
+    </div>
+  </nav>
+
+  <!-- Шторки -->
+  <div class="sheet" id="sheetDate" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="body">
+      <div class="cal-head">
+        <button class="navbtn" id="prevM">‹</button>
+        <h3 id="calTitle">месяц</h3>
+        <button class="navbtn" id="nextM">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="sheet-actions">
+        <button class="btn" data-close="#sheetDate">Отмена</button>
+        <button class="btn ok" id="dateOk">Готово</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="sheetAmen" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="body">
+      <h3 style="margin:4px 8px 10px">Удобства</h3>
+
+      <!-- Отличающаяся кнопка -->
+      <div class="amen women-only" data-key="womenOnly" role="button" tabindex="0" aria-pressed="false">♀️ Только женщины</div>
+
+      <div class="amen-grid" id="amenGrid">
+        <div class="amen" data-key="climate">❄️ Климат</div>
+        <div class="amen" data-key="music">🎧 Музыка</div>
+        <div class="amen" data-key="electro">💨 Электронки</div>
+        <div class="amen" data-key="rear2">🧍‍♀️🧍‍♀️ Только 2 сзади</div>
+        <div class="amen" data-key="pet">🐾 С животным</div>
+        <div class="amen" data-key="child">🍼 Ребёнок ок</div>
+        <div class="amen" data-key="charge">⚡️ Зарядка</div>
+        <div class="amen" data-key="talk">🗣 Поболтаем</div>
+        <div class="amen" data-key="calm">🧊 Спокойная езда</div>
+        <div class="amen" data-key="noSmoke">🚭 Некурящий салон</div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn" data-close="#sheetAmen">Отмена</button>
+        <button class="btn ok" id="amenOk">Применить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+
+    (function setNavHeight(){
+      const nav = $('#nav');
+      const set = ()=> document.documentElement.style.setProperty('--nav-h', (nav?.offsetHeight||92) + 'px');
+      set(); window.addEventListener('resize', set);
+    })();
+
+    // swap — только если кнопка есть (чтобы не падало)
+    const swapBtn = $('#swapBtn');
+    if (swapBtn){
+      swapBtn.addEventListener('click', ()=>{
+        const a=$('#from'), b=$('#to'); [a.value,b.value]=[b.value,a.value]; b.focus();
+      });
+    }
+
+    const sheetDate = $('#sheetDate'), sheetAmen = $('#sheetAmen');
+    const openSheet = el => { [sheetDate,sheetAmen].forEach(x=>x.classList.remove('open')); el.classList.add('open'); el.setAttribute('aria-hidden','false'); };
+    const closeSheet = el => { el.classList.remove('open'); el.setAttribute('aria-hidden','true'); };
+    $('#btnDate').onclick = ()=> openSheet(sheetDate);
+    $('#btnAmen').onclick = ()=> openSheet(sheetAmen);
+    document.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click',()=> closeSheet(document.querySelector(b.dataset.close))));
+    [sheetDate,sheetAmen].forEach(s=> s.addEventListener('click',e=>{ if(e.target===s) closeSheet(s); }));
+
+    // calendar
+    const calTitle=$('#calTitle'), calGrid=$('#calGrid'), dateValue=$('#dateValue');
+    let cur=new Date(); cur.setHours(0,0,0,0); let picked=null;
+    function renderCal(d){
+      calGrid.innerHTML='';
+      const y=d.getFullYear(), m=d.getMonth();
+      calTitle.textContent=d.toLocaleString('ru-RU',{month:'long',year:'numeric'});
+      const first=new Date(y,m,1);
+      const start=new Date(first); start.setDate(first.getDate()-((first.getDay()+6)%7));
+      for(let i=0;i<42;i++){
+        const day=new Date(start); day.setDate(start.getDate()+i);
+        const cell=document.createElement('div');
+        cell.className='day'+(day.getMonth()!==m?' muted':'');
+        cell.textContent=day.getDate();
+        cell.onclick=()=>{ picked=new Date(day); document.querySelectorAll('.day').forEach(d=>d.classList.remove('active')); cell.classList.add('active'); };
+        if(picked && day.toDateString()===picked.toDateString()) cell.classList.add('active');
+        calGrid.appendChild(cell);
+      }
+    }
+    renderCal(cur);
+    document.getElementById('prevM').onclick=()=>{ cur.setMonth(cur.getMonth()-1); renderCal(cur); };
+    document.getElementById('nextM').onclick=()=>{ cur.setMonth(cur.getMonth()+1); renderCal(cur); };
+    document.getElementById('dateOk').onclick=()=>{ if(picked){ const dd=String(picked.getDate()).padStart(2,'0'); const mm=String(picked.getMonth()+1).padStart(2,'0'); const yy=picked.getFullYear(); dateValue.textContent=`${dd}.${mm}.${yy}`; } closeSheet(sheetDate); };
+
+    // amenities
+    const amenSelected = new Set();
+    const map = {
+      climate:'❄️ Климат', music:'🎧 Музыка', electro:'💨 Электронки', rear2:'🧍‍♀️🧍‍♀️ Только 2 сзади',
+      pet:'🐾 С животным', child:'🍼 Ребёнок ок', charge:'⚡️ Зарядка', talk:'🗣 Поболтаем',
+      calm:'🧊 Спокойная езда', noSmoke:'🚭 Некурящий салон', womenOnly:'♀️ Только женщины'
+    };
+
+    // обработчики для всех удобств + women-only
+    document.querySelectorAll('#amenGrid .amen, .amen.women-only').forEach(a=>{
+      a.setAttribute('role','button');
+      a.setAttribute('tabindex','0');
+      a.setAttribute('aria-pressed','false');
+
+      function toggle(){
+        const k=a.dataset.key; if(!k) return;
+        if(amenSelected.has(k)){
+          amenSelected.delete(k); a.classList.remove('sel'); a.setAttribute('aria-pressed','false');
+        } else {
+          amenSelected.add(k); a.classList.add('sel'); a.setAttribute('aria-pressed','true');
+        }
+        redrawChosen();
+      }
+
+      a.addEventListener('click', toggle);
+      a.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
+    });
+
+    function _redrawChosenBase(){
+      const wrap=$('#chosenWrap'); wrap.innerHTML='';
+      if(!amenSelected.size){ $('#amenCount').textContent='нет'; return; }
+
+      if(amenSelected.has('womenOnly')){
+        const chip=document.createElement('div'); chip.className='chip'; chip.textContent=map['womenOnly']; wrap.appendChild(chip);
+      }
+      amenSelected.forEach(k=>{
+        if(k==='womenOnly') return;
+        const chip=document.createElement('div'); chip.className='chip'; chip.textContent=map[k]||k; wrap.appendChild(chip);
+      });
+      $('#amenCount').textContent=String(amenSelected.size);
+    }
+
+    function applyFilter(){
+      const wantWomen = amenSelected.has('womenOnly');
+      document.querySelectorAll('a.r-card').forEach(card=>{
+        const isWomen = card.dataset.womenOnly === 'true';
+        if(wantWomen && !isWomen) card.style.display = 'none';
+        else card.style.display = '';
+      });
+    }
+
+    function redrawChosen(){ _redrawChosenBase(); applyFilter(); }
+
+    document.getElementById('amenOk').onclick = ()=> { redrawChosen(); closeSheet(sheetAmen); };
+
+    // find demo
+    document.getElementById('findBtn').onclick = ()=> { document.querySelector('.r-card').scrollIntoView({behavior:'smooth'}); };
+
+    // close on ESC
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ [sheetDate,sheetAmen].forEach(s=> closeSheet(s)); } });
+  </script>
+</body>
+</html>

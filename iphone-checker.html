@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>RideNow — iPhone 14 Pro Max Dev-чекер</title>
+<style>
+:root{
+  --ink:#eaf2ff; --muted:#a6b0c3; --stroke:rgba(255,255,255,.18);
+  --glass1:rgba(14,21,26,.55); --glass2:rgba(14,21,26,.35);
+  --g1:#ffb668; --g2:#9de9d7;
+  /* iPhone 14 Pro Max logical px */
+  --w:393px; --h:852px;
+  /* высота сцены от тулбара (ставим небольшой зазор) */
+  --stageTop:72px;
+  /* вертикальный сдвиг телефона (минус — выше) */
+  --yShift:-120px; /* ял выше по умолчанию */
+}
+
+/* страница не скроллится */
+*{box-sizing:border-box}
+html,body{
+  height:100vh; width:100%;
+  margin:0; overflow:hidden; overscroll-behavior:none;
+  color:var(--ink);
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  background:
+    radial-gradient(1200px 800px at 10% 10%, rgba(157,233,215,.12), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55));
+}
+
+/* тулбар */
+.toolbar{
+  position:fixed; z-index:50; left:50%; top:10px; transform:translateX(-50%);
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  padding:8px; border:1px solid var(--stroke); border-radius:14px;
+  background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+  backdrop-filter:blur(10px) saturate(140%);
+  box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18);
+  max-width:min(96vw,960px);
+}
+.btn,.select{
+  height:36px; border-radius:10px; border:1px solid var(--stroke);
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  color:var(--ink); font-weight:800; padding:0 10px; cursor:pointer;
+}
+.btn.pri{border:0; color:#0b0f12; background:linear-gradient(90deg,var(--g1),var(--g2))}
+.select{appearance:none; padding-right:22px}
+
+/* сцена — телефон всегда помещается; низ гарантированно виден */
+.stage{
+  position:fixed; z-index:1;
+  left:20px; right:20px;
+  top:var(--stageTop);
+  bottom:clamp(12px, env(safe-area-inset-bottom), 28px);
+  display:grid; place-items:center;
+}
+
+/* телефон */
+.phone-wrap{ display:grid; place-items:center }
+.scale{
+  transform-origin:center center;
+  transform: translateY(var(--yShift)); /* управляем высотой */
+  will-change:transform;
+}
+.phone{
+  position:relative;
+  width:calc(var(--w) + 38px);
+  height:calc(var(--h) + 38px);
+  border-radius:46px;
+  background:linear-gradient(180deg,#0a0f13,#111821);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,.6),
+    inset 0 0 0 2px rgba(255,255,255,.06),
+    inset 0 0 0 12px #0b0f12;
+  border:1px solid rgba(255,255,255,.08);
+}
+.side-btn{position:absolute; width:4px; height:54px; background:#1a212b; border-radius:2px}
+.side-btn.l1{left:-3px; top:110px}
+.side-btn.l2{left:-3px; top:178px}
+.side-btn.r1{right:-3px; top:150px; height:70px}
+
+.screen{
+  position:absolute; inset:18px;
+  border-radius:32px; overflow:hidden; background:#000;
+  outline:1px solid rgba(255,255,255,.06);
+}
+.island{
+  position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  width:126px; height:36px; background:#000; border-radius:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06); z-index:2;
+}
+.statusbar{
+  position:absolute; top:4px; left:0; right:0; height:20px; z-index:1;
+  display:flex; align-items:center; justify-content:space-between; padding:0 14px; pointer-events:none;
+  color:#bcd2f3; font-weight:700; font-size:12px; text-shadow:0 1px 0 rgba(0,0,0,.6);
+}
+
+.viewport{position:absolute; inset:0; display:grid; place-items:center}
+.iframe-shell{
+  width:var(--w); height:var(--h);
+  background:#0b0f12; border-radius:28px; overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 20px 40px rgba(0,0,0,.35);
+}
+#frame{width:100%; height:100%; border:0; display:block; background:#0b0f12}
+
+/* пикер */
+.sheet{position:fixed; inset:0; display:none; place-items:center; z-index:60}
+.sheet.show{display:grid}
+.dim{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px)}
+.picker{
+  position:relative; width:min(720px,98vw); max-height:80vh; overflow:hidden; display:flex; flex-direction:column;
+  border:1px solid var(--stroke); border-radius:16px; background:linear-gradient(180deg,var(--glass1),var(--glass2));
+  box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.22);
+}
+.phead{display:flex; gap:8px; align-items:center; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.12)}
+.phead input{flex:1; height:36px; border-radius:10px; border:1px solid var(--stroke);
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); color:var(--ink); padding:0 10px}
+.plist{overflow:auto; padding:10px; display:grid; gap:8px}
+.pitem{display:flex; justify-content:space-between; gap:8px; align-items:center; padding:10px 12px; border:1px solid var(--stroke); border-radius:12px; cursor:pointer;
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06))}
+.pitem:hover{outline:2px solid rgba(157,233,215,.45)}
+.pitem .t{font-weight:900} .pitem .s{color:var(--muted); font-size:12px}
+
+/* анти-скроллбар */
+::-webkit-scrollbar{width:0;height:0}
+</style>
+</head>
+<body>
+
+<div class="toolbar" id="toolbar">
+  <button class="btn" id="pickBtn">Выбрать страницу</button>
+  <select class="select" id="scaleSel" title="Масштаб">
+    <option value="fit" selected>Fit</option>
+    <option value="0.75">75%</option>
+    <option value="1">100%</option>
+    <option value="1.25">125%</option>
+    <option value="1.5">150%</option>
+  </select>
+  <button class="btn" id="rotBtn" title="Повернуть">Повернуть</button>
+  <button class="btn" id="upBtn">↑ Вверх</button>
+  <button class="btn" id="downBtn">↓ Вниз</button> 
+  <button class="btn pri" id="reloadBtn" title="Перезагрузить">Reload</button>
+</div>
+
+<div class="stage" id="stage">
+  <div class="phone-wrap">
+    <div class="scale" id="scaleBox">
+      <div class="phone" id="phone">
+        <div class="side-btn l1"></div><div class="side-btn l2"></div><div class="side-btn r1"></div>
+        <div class="screen">
+          <div class="island"></div>
+          <div class="statusbar"><div id="clock">09:41</div><div>LTE ● ● ●</div></div>
+          <div class="viewport">
+            <div class="iframe-shell">
+              <iframe id="frame" src="index.html" title="Preview"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="picker">
+  <div class="dim" data-close></div>
+  <div class="picker">
+    <div class="phead">
+      <div style="font-weight:900">Выберите страницу</div>
+      <input id="searchInp" placeholder="Поиск по имени или заголовку…"/>
+      <button class="btn" data-close>Закрыть</button>
+    </div>
+    <div class="plist" id="plist"></div>
+  </div>
+</div>
+
+<script>
+const PAGES = [
+  {file:'index.html',                    title:'Вход — RideNow'},
+  {file:'passenger-profile.html',        title:'Профиль пассажира'},
+  {file:'passenger-wallet.html',         title:'Кошелёк'},
+  {file:'passenger-active.html',         title:'Актуальная'},
+  {file:'passenger-search.html',         title:'Поиск — RideNow'},
+  {file:'passenger-trip.html',           title:'Поездка (старый)'},
+  {file:'passenger-trip-pending.html',   title:'Поездка — ожидание'},
+  {file:'passenger-trip-live.html',      title:'Поездка — подтверждена'},
+  {file:'passenger-trip-ongoing.html',   title:'Поездка — в пути'},
+  {file:'passenger-trip-cancelled.html', title:'Бронь отменена'},
+  {file:'passenger-pay-create.html',     title:'Оплата — создание'},
+  {file:'passenger-pay-card.html',       title:'Оплата картой'},
+  {file:'passenger-receipt.html',        title:'Квитанция'},
+  {file:'passenger-register.html',       title:'Регистрация'},
+  {file:'passenger-reset.html',          title:'Сброс пароля'},
+  {file:'passenger-reset-done.html',     title:'Пароль сброшен'},
+  {file:'passenger-restore.html',        title:'Восстановление'},
+  {file:'passenger-finish.html',         title:'Завершение'},
+  {file:'passenger-legal.html',          title:'Правовая информация'},
+  {file:'passenger-settings.html',       title:'Настройки'},
+  {file:'квитанция.html',                title:'Квитанция (старый)'},
+  {file:'driver-create-trip.html',       title:'Водитель — создать поездку'},
+  {file:'dev-checker.html',              title:'Dev-чекер (старый)'},
+];
+
+const $ = s=>document.querySelector(s);
+const el=(t,c,txt)=>{const d=document.createElement(t); if(c)d.className=c; if(txt!=null)d.textContent=txt; return d;};
+
+const frame=$('#frame'), phone=$('#phone'), scaleBox=$('#scaleBox'), stage=$('#stage');
+let isPortrait=true;
+
+// ДОБАВЬ в JS
+const HIDE_SCROLLBAR_CSS = `
+  html, body { scrollbar-width: none; }
+  ::-webkit-scrollbar { width:0; height:0; }
+`;
+
+function injectHideScrollbar(){
+  try{
+    const doc = frame.contentDocument || frame.contentWindow.document;
+    if (!doc) return;
+    const style = doc.createElement('style');
+    style.textContent = HIDE_SCROLLBAR_CSS;
+    doc.head.appendChild(style);
+  }catch(e){
+    // если кросс-домен — просто молча пропустим, сработает Маска (п.1)
+  }
+}
+
+frame.addEventListener('load', injectHideScrollbar);
+
+
+/* часы */
+function setClock(){ const d=new Date(); $('#clock').textContent=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+setClock(); setInterval(setClock, 10000);
+
+/* верх сцены = низ тулбара + запас */
+function updateStageTop(){
+  const tb=$('#toolbar').getBoundingClientRect();
+  const top=Math.round(tb.bottom)+10;
+  document.documentElement.style.setProperty('--stageTop', top+'px');
+}
+
+/* масштабирование */
+function applyScale(){
+  const sel=$('#scaleSel').value;
+  if(sel==='fit'){
+    const rect=stage.getBoundingClientRect();
+    const pw=phone.offsetWidth, ph=phone.offsetHeight;
+    const k=Math.min(rect.width/pw, rect.height/ph);
+    const clamped=Math.max(0.25, Math.min(2, k*0.995));
+    scaleBox.style.transform=`translateY(var(--yShift)) scale(${clamped}) translateZ(0)`;
+  }else{
+    scaleBox.style.transform=`translateY(var(--yShift)) scale(${parseFloat(sel)}) translateZ(0)`;
+  }
+}
+
+/* поворот */
+function rotatePhone(){
+  isPortrait=!isPortrait;
+  document.documentElement.style.setProperty('--w', isPortrait?'393px':'852px');
+  document.documentElement.style.setProperty('--h', isPortrait?'852px':'393px');
+  applyScale();
+}
+
+/* сдвиг вверх/вниз */
+function nudge(dy){
+  const cs=getComputedStyle(document.documentElement).getPropertyValue('--yShift').trim();
+  const cur=parseInt(cs||'0',10);
+  const next=Math.max(-300, Math.min(300, cur+dy)); // ограничители
+  document.documentElement.style.setProperty('--yShift', next+'px');
+  applyScale();
+}
+
+/* пикер */
+const picker=$('#picker'), plist=$('#plist'), searchInp=$('#searchInp');
+function openPicker(){ picker.classList.add('show'); searchInp.value=''; renderPickList(); searchInp.focus(); }
+function closePicker(){ picker.classList.remove('show'); }
+picker.addEventListener('click', e=>{ if(e.target.dataset.close!==undefined) closePicker(); });
+$('#pickBtn').onclick=openPicker;
+function renderPickList(){
+  const q=(searchInp.value||'').toLowerCase(); plist.innerHTML='';
+  for(const p of PAGES){
+    if(q && !(p.file.toLowerCase().includes(q) || (p.title||'').toLowerCase().includes(q))) continue;
+    const it=el('div','pitem'); it.append(el('div','t',p.file), el('div','s',p.title||'')); 
+    it.onclick=()=>{ frame.src=p.file; closePicker(); };
+    plist.append(it);
+  }
+}
+searchInp.addEventListener('input', renderPickList);
+
+/* события */
+window.addEventListener('resize', ()=>{ updateStageTop(); applyScale(); });
+$('#scaleSel').addEventListener('change', applyScale);
+$('#rotBtn').addEventListener('click', rotatePhone);
+$('#reloadBtn').addEventListener('click', ()=> frame.contentWindow.location.reload());
+$('#upBtn').addEventListener('click', ()=> nudge(-20));
+$('#downBtn').addEventListener('click', ()=> nudge(20));
+
+/* анти-скролл страницы */
+
+/* старт */
+(function init(){
+  new ResizeObserver(()=>{ updateStageTop(); applyScale(); }).observe($('#toolbar'));
+  updateStageTop();
+  applyScale(); // Fit по умолчанию
+})();
+</script>
+</body>
+</html>

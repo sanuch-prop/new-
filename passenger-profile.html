@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Профиль пассажира — RideNow</title>
+  <style>
+    :root{
+      --ink:#eaf2ff; --muted:#a6b5cc; --stroke:rgba(255,255,255,.18);
+      --glass-1:rgba(14,21,26,.55); --glass-2:rgba(14,21,26,.35);
+      --g1:#ffb668; --g2:#9de9d7;
+      --gutter-inline: clamp(14px, 4vw, 24px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;width:100%;overflow-x:hidden;overscroll-behavior-y:contain}
+    body{
+      font-family:system-ui,ui-sans-serif,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      color:var(--ink);
+      background:linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.65)), url("image.png") center/cover no-repeat fixed;
+    }
+    main{
+      min-height:100svh;
+      padding:20px var(--gutter-inline) calc(110px + var(--safe-bottom));
+      display:flex; align-items:flex-start; justify-content:center; width:100%;
+    }
+    .card{
+      width:100%; max-width:520px; position:relative;
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      border:1px solid var(--stroke); border-radius:20px; padding:18px;
+      box-shadow:0 6px 24px rgba(0,0,0,.5); backdrop-filter: blur(12px) saturate(140%);
+    }
+    .fwrap{position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:50}
+    .fab{
+      width:40px; height:40px; border-radius:999px; display:grid; place-items:center; cursor:pointer;
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+      border:1px solid var(--stroke); color:var(--ink); font-weight:900;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    h1{margin:0 0 12px; font-size:24px; text-align:center}
+
+    /* avatar */
+    #avatarWrap{
+      width:120px;height:120px;margin:0 auto 12px;border-radius:50%;
+      display:grid;place-items:center;overflow:hidden;cursor:pointer;
+      background:rgba(255,255,255,.12); position:relative; border:1px solid var(--stroke);
+    }
+    #avatarWrap img{width:100%;height:100%;object-fit:cover;display:block}
+    #avatarWrap.empty{ background:rgba(255,255,255,.06); border:2px dashed rgba(255,255,255,.35); }
+    .avatar-placeholder{ color:#cbd6ea; font-weight:900; font-size:12px; text-align:center; opacity:.95; padding:0 8px; }
+    .avatar-del{ position:absolute; top:6px; left:6px; font-size:11px; padding:4px 6px; border-radius:8px;
+      border:1px solid var(--stroke); background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25); color:var(--ink); display:none; cursor:pointer; }
+    #avatarWrap.has-photo .avatar-del{ display:block }
+
+    .display-name{ text-align:center; font-size:20px; font-weight:900; display:flex; gap:6px; justify-content:center; align-items:center }
+    .name-tick{ width:22px;height:22px;border-radius:999px; display:none;
+      background:linear-gradient(180deg,var(--g1),var(--g2)); color:#0b0f12; font-weight:900; place-items:center; font-size:14px;
+      box-shadow:0 6px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6); }
+
+    .status{ text-align:center; margin:8px 0; color:var(--g2); font-weight:800 }
+    .verify{ margin:10px 0 6px }
+    .verify .title{ font-weight:900; opacity:.95; margin-bottom:6px; text-align:center }
+    .vgrid{ display:grid; grid-template-columns: 1fr 1fr; gap:8px }
+    .vbox{ height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;
+      border:1px solid var(--stroke); background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      color:var(--ink); font-weight:800; box-shadow:inset 0 1px 0 rgba(255,255,255,.25); opacity:.85; }
+    .vbox.ok{ opacity:1; border:none; background:linear-gradient(180deg,var(--g1),var(--g2)); color:#0b0f12;
+      box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6) }
+    .vbox .tick{ display:none } .vbox.ok .tick{ display:inline }
+    .verify-actions{ display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 14px; border-radius:12px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      color:var(--ink); font-weight:800; cursor:pointer; text-decoration:none;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25); }
+    .btn.prim{ border:none; color:#0b0f12; background:linear-gradient(180deg,var(--g1),var(--g2)); box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6) }
+
+    /* DATA */
+    .data-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:14px 0 4px }
+    .data-title{ font-weight:900; opacity:.95 }
+    .dot-edit{
+      width:36px; height:36px; border-radius:999px; border:none; cursor:pointer; user-select:none;
+      color:#0b0f12; font-weight:900;
+      background:linear-gradient(180deg,var(--g1),var(--g2));
+      box-shadow:0 10px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    .rows{ margin:0; padding:0 }
+    .row{ display:grid; grid-template-columns: 1.2fr 1fr; gap:8px; align-items:center;
+      padding:10px 0; border-bottom:1px solid rgba(255,255,255,.18); font-size:14px; }
+    .row:last-child{ border-bottom:none }
+    .k{opacity:.90; font-weight:800}
+    .v{font-weight:800; text-align:right}
+
+    /* edit */
+    .edit{display:none}
+    .input{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke);
+      background:rgba(255,255,255,.08); color:var(--ink); font-weight:700; font-size:15px; outline:none; }
+    .input:focus{box-shadow:0 0 0 2px rgba(255,255,255,.18) inset}
+    .seg{ display:flex; gap:8px; background:rgba(255,255,255,.06); border:1px solid var(--stroke); border-radius:12px; padding:4px; }
+    .seg button{ flex:1; padding:8px 10px; border:none; border-radius:8px; cursor:pointer; font-weight:900; color:var(--ink); background:transparent;}
+    .seg button.active{ color:#0b0f12; background:linear-gradient(180deg,var(--g1),var(--g2)); box-shadow:inset 0 1px 0 rgba(255,255,255,.6); }
+
+    /* save */
+    .cta-stick{ position:sticky; bottom:calc(84px + var(--safe-bottom)); z-index:10; margin-top:10px; padding-top:6px;
+      background:linear-gradient(to top, rgba(11,15,18,.35), rgba(11,15,18,0)); border-radius:12px; backdrop-filter:saturate(120%); display:none; }
+    .cta{ display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:12px 16px; border-radius:14px; border:none; cursor:pointer; font-weight:900;
+      color:#0b0f12; background:linear-gradient(180deg,var(--g1),var(--g2));
+      box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6) }
+
+    /* bottom nav */
+    .bottom-shell{ position:fixed; left:0; right:0; bottom:0; padding:0 env(safe-area-inset-right) calc(env(safe-area-inset-bottom) + 0px) env(safe-area-inset-left); z-index:1000; }
+    .bottom-bar{ display:flex; justify-content:space-around; align-items:flex-end; background:var(--glass-2); border-radius:20px 20px 0 0; padding:8px 8px calc(8px + var(--safe-bottom)); backdrop-filter: blur(12px); }
+    .bn-tab{flex:1; text-align:center; color:var(--ink); font-size:12px; text-decoration:none; padding:6px 0}
+    .bn-tab .ico{font-size:18px; display:block}
+    .bn-tab.active{ color:var(--g1) }
+
+    /* ===== Bottom Sheet Wheel Datepicker ===== */
+    .sheet-overlay{
+      position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter: blur(2px);
+      opacity:0; pointer-events:none; transition:opacity .18s ease; z-index:1200;
+    }
+    .sheet{
+      position:fixed; left:0; right:0; bottom:0; translate:0 100%;
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      border-top:1px solid var(--stroke);
+      border-radius:18px 18px 0 0;
+      box-shadow:0 -10px 28px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25);
+      padding:12px 12px calc(12px + var(--safe-bottom));
+      backdrop-filter: blur(14px) saturate(140%);
+      transition:translate .24s cubic-bezier(.2,.8,.2,1);
+      z-index:1300; max-width:520px; margin:0 auto;
+    }
+    .sheet.open{ translate:0 0 }
+    .sheet-overlay.open{ opacity:1; pointer-events:auto }
+
+    .dp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .dp-title{font-weight:900}
+    .dp-actions{display:flex; gap:8px}
+    .dp-btn{
+      height:34px; min-width:34px; padding:0 12px; border-radius:10px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+      color:var(--ink); font-weight:800; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+
+    .wheels{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; position:relative; margin:8px 0 6px}
+    .wheel{
+      height:180px; overflow:auto; overscroll-behavior:contain;
+      border:1px solid var(--stroke); border-radius:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+      scroll-snap-type:y mandatory; scrollbar-width:none;
+    }
+    .wheel::-webkit-scrollbar{display:none}
+    .wheel-pad{height:71px} /* верх/низ буферы под центральную линию */
+    .item{
+      height:38px; display:grid; place-items:center; font-weight:900; opacity:.88;
+      scroll-snap-align:center;
+    }
+    .wheels::before, .wheels::after{
+      content:""; position:absolute; left:0; right:0; height:36px; pointer-events:none;
+      background:linear-gradient(to bottom, rgba(11,15,18,.85), rgba(11,15,18,0));
+      border-radius:12px; z-index:1;
+    }
+    .wheels::before{top:-1px}
+    .wheels::after{bottom:-1px; transform:rotate(180deg)}
+    .bar{
+      position:absolute; left:0; right:0; top:50%; translate:0 -50%; height:38px;
+      border-radius:10px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+      pointer-events:none;
+    }
+
+    .dp-ctl{display:flex; justify-content:flex-end; gap:8px; margin-top:8px}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card" id="card">
+      <div class="fwrap">
+        <a class="fab" id="settingsBtn" title="Настройки">⚙</a>
+      </div>
+
+      <h1>Профиль пассажира</h1>
+
+      <!-- avatar -->
+      <div id="avatarWrap" class="empty" title="Загрузите фото">
+        <div class="avatar-placeholder">Загрузите фото</div>
+        <button class="avatar-del" id="avatarDel" type="button">✕</button>
+        <input id="avatarInput" type="file" accept="image/*" style="display:none">
+      </div>
+
+      <div class="display-name"><span id="displayName">Пассажир</span><span class="name-tick" id="nameTick">✓</span></div>
+
+      <!-- verification -->
+      <div class="status" id="status">Верификация аккаунта</div>
+      <section class="verify" id="verifySection">
+        <div class="title">Пройдите верификацию</div>
+        <div class="vgrid">
+          <div class="vbox" id="vPhoto"><span class="tick">✓</span> Фото</div>
+          <div class="vbox" id="vName"><span class="tick">✓</span> Имя</div>
+        </div>
+        <div class="verify-actions"><button class="btn prim" id="diiaBtn" type="button">Подтвердить через Дія</button></div>
+      </section>
+
+      <!-- DATA -->
+      <div class="data-head">
+        <div class="data-title">Данные:</div>
+        <button id="editDot" class="dot-edit" type="button" title="Изменить">✎</button>
+      </div>
+
+      <!-- view -->
+      <div class="rows view" id="viewBlock">
+        <div class="row"><div class="k">Имя и фамилия</div><div class="v" data-f="fullName">—</div></div>
+        <div class="row"><div class="k">Email</div><div class="v" data-f="email">—</div></div>
+        <div class="row"><div class="k">Телефон</div><div class="v" data-f="phone">—</div></div>
+        <div class="row"><div class="k">Город</div><div class="v" data-f="city">—</div></div>
+        <div class="row"><div class="k">Дата рождения</div><div class="v" data-f="birth">—</div></div>
+        <div class="row"><div class="k">Пол</div><div class="v" data-f="genderLabel">мужской</div></div>
+      </div>
+
+      <!-- edit -->
+      <form class="edit" id="editForm" novalidate>
+        <div class="rows">
+          <div class="row"><div class="k">Имя и фамилия</div><div><input class="input" id="iFullName" placeholder="Имя Фамилия"></div></div>
+          <div class="row"><div class="k">Email</div><div><input class="input" id="iEmail" type="email" placeholder="name@example.com" autocomplete="email"></div></div>
+          <div class="row"><div class="k">Телефон</div><div><input class="input" id="iPhone" type="tel" placeholder="+380..." inputmode="tel"></div></div>
+          <div class="row"><div class="k">Город</div><div><input class="input" id="iCity" placeholder="Город"></div></div>
+
+          <!-- наша дата -->
+          <div class="row"><div class="k">Дата рождения</div>
+            <div><input class="input" id="iBirth" type="text" inputmode="none" placeholder="ГГГГ-ММ-ДД" readonly></div>
+          </div>
+
+          <div class="row"><div class="k">Пол</div>
+            <div class="seg" role="tablist" aria-label="Пол">
+              <button type="button" id="gMale"   class="active">Мужской</button>
+              <button type="button" id="gFemale">Женский</button>
+            </div>
+          </div>
+        </div>
+        <div class="cta-stick" id="saveSticky"><button class="cta" type="submit">Сохранить</button></div>
+      </form>
+    </div>
+  </main>
+
+  <!-- bottom nav -->
+  <nav class="bottom-shell" aria-label="Главная навигация">
+    <div class="bottom-bar">
+      <a class="bn-tab active" href="passenger-profile.html"><div class="ico">👤</div>Профиль</a>
+      <a class="bn-tab" href="passenger-wallet.html"><div class="ico">💳</div>Кошелёк</a>
+      <a class="bn-tab" href="passenger-active.html"><div class="ico">🚗</div>Актуальная</a>
+      <a class="bn-tab" href="passenger-search.html"><div class="ico">🔍</div>Поиск</a>
+    </div>
+  </nav>
+
+  <!-- Bottom Sheet Wheel Datepicker -->
+  <div class="sheet-overlay" id="dpOverlay"></div>
+  <div class="sheet" id="dpSheet" role="dialog" aria-modal="true" aria-labelledby="dpTitle">
+    <div class="dp-head">
+      <div class="dp-title" id="dpTitle">Выберите дату</div>
+      <div class="dp-actions">
+        <button class="dp-btn" id="dpCancel" type="button">Отмена</button>
+        <button class="dp-btn" id="dpToday" type="button">Сегодня</button>
+        <button class="dp-btn" id="dpDone" type="button">Готово</button>
+      </div>
+    </div>
+
+    <div class="wheels">
+      <div class="bar" aria-hidden="true"></div>
+      <div class="wheel" id="wDay"   aria-label="День"><div class="wheel-pad"></div></div>
+      <div class="wheel" id="wMonth" aria-label="Месяц"><div class="wheel-pad"></div></div>
+      <div class="wheel" id="wYear"  aria-label="Год"><div class="wheel-pad"></div></div>
+    </div>
+
+    <div class="dp-ctl">
+      <button class="dp-btn" id="dpClear" type="button">Очистить</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s); const $$ = s => document.querySelectorAll(s);
+    const KEY='ridenow_profile';
+    const loadProfile=()=>{try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}};
+    const saveProfile=p=>{try{localStorage.setItem(KEY,JSON.stringify(p))}catch(e){}};
+
+    let profile = loadProfile() || {role:'passenger', fullName:'', email:'', phone:'', city:'', birth:'', avatar:null, gender:'male'};
+    let verifiedName=false;
+
+    const avatarWrap=$('#avatarWrap'), statusEl=$('#status'), verifySection=$('#verifySection');
+    const displayName=$('#displayName'), nameTick=$('#nameTick');
+    const vPhoto=$('#vPhoto'), vName=$('#vName');
+    const viewBlock=$('#viewBlock'), editForm=$('#editForm'), saveSticky=$('#saveSticky');
+
+    const genderLabel=g=>g==='female'?'женский':'мужской';
+
+    function applyProfileToView(){
+      $('[data-f="fullName"]').textContent=profile.fullName||'—';
+      $('[data-f="email"]').textContent=profile.email||'—';
+      $('[data-f="phone"]').textContent=profile.phone||'—';
+      $('[data-f="city"]').textContent=profile.city||'—';
+      $('[data-f="birth"]').textContent=profile.birth||'—';
+      $('[data-f="genderLabel"]').textContent=genderLabel(profile.gender);
+
+      const first=(profile.fullName||'').trim().split(/\s+/)[0]||'Пассажир';
+      displayName.textContent=first;
+
+      renderAvatar();
+
+      const photoOk=!!profile.avatar;
+      vPhoto.classList.toggle('ok',photoOk);
+      vName.classList.toggle('ok',verifiedName);
+
+      nameTick.style.display=verifiedName?'grid':'none';
+      statusEl.style.display=verifiedName?'none':'';
+      verifySection.style.display=verifiedName?'none':'';
+    }
+
+    function renderAvatar(){
+      if(profile.avatar){
+        avatarWrap.classList.remove('empty'); avatarWrap.classList.add('has-photo');
+        avatarWrap.innerHTML=`<img alt="avatar"><button class="avatar-del" id="avatarDel" type="button">✕</button>
+        <input id="avatarInput" type="file" accept="image/*" style="display:none">`;
+        avatarWrap.querySelector('img').src=profile.avatar;
+        avatarWrap.querySelector('#avatarInput').addEventListener('change',onAvatarFile);
+        avatarWrap.querySelector('#avatarDel').addEventListener('click',clearAvatar);
+      }else{
+        avatarWrap.classList.add('empty'); avatarWrap.classList.remove('has-photo');
+        avatarWrap.innerHTML=`<div class="avatar-placeholder">Загрузите фото</div>
+        <button class="avatar-del" id="avatarDel" type="button">✕</button>
+        <input id="avatarInput" type="file" accept="image/*" style="display:none">`;
+        avatarWrap.querySelector('#avatarInput').addEventListener('change',onAvatarFile);
+        avatarWrap.querySelector('#avatarDel').addEventListener('click',clearAvatar);
+      }
+    }
+
+    function applyProfileToEdit(){
+      $('#iFullName').value=profile.fullName||''; $('#iEmail').value=profile.email||'';
+      $('#iPhone').value=profile.phone||''; $('#iCity').value=profile.city||'';
+      $('#iBirth').value=profile.birth||'';
+      $('#gMale').classList.toggle('active',profile.gender==='male');
+      $('#gFemale').classList.toggle('active',profile.gender==='female');
+    }
+
+    let editing=false;
+    function setEditing(on){
+      editing=on;
+      viewBlock.style.display=on?'none':''; editForm.style.display=on?'block':'none';
+      saveSticky.style.display=on?'block':'none';
+      $('#editDot').textContent = on ? '✕' : '✎';
+      if(on) applyProfileToEdit();
+    }
+    $('#editDot').addEventListener('click',()=>setEditing(!editing));
+    $$('#viewBlock .row').forEach((row,idx)=>{
+      row.addEventListener('click',()=>{
+        setEditing(true);
+        const inputs=['#iFullName','#iEmail','#iPhone','#iCity','#iBirth',null];
+        const el=inputs[idx] && document.querySelector(inputs[idx]); if(el) el.focus();
+      });
+    });
+
+    $('#gMale').addEventListener('click',()=>{ $('#gMale').classList.add('active'); $('#gFemale').classList.remove('active'); profile.gender='male'; });
+    $('#gFemale').addEventListener('click',()=>{ $('#gFemale').classList.add('active'); $('#gMale').classList.remove('active'); profile.gender='female'; });
+
+    function onAvatarFile(e){ const f=e.target.files&&e.target.files[0]; if(!f) return;
+      const r=new FileReader(); r.onload=()=>{ profile.avatar=r.result; saveProfile(profile); applyProfileToView(); }; r.readAsDataURL(f); }
+    function clearAvatar(e){ e?.stopPropagation?.(); profile.avatar=null; saveProfile(profile); applyProfileToView(); }
+    avatarWrap.addEventListener('click',(e)=>{ if(e.target&&e.target.id==='avatarDel') return; const i=avatarWrap.querySelector('#avatarInput'); i&&i.click(); });
+
+    $('#editForm').addEventListener('submit',(e)=>{
+      e.preventDefault();
+      const fullName=$('#iFullName').value.trim(), email=$('#iEmail').value.trim(),
+            phone=$('#iPhone').value.trim(), city=$('#iCity').value.trim(), birth=$('#iBirth').value.trim();
+      if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert('Некорректный e-mail'); return; }
+      if(phone && !/^\+?\d[\d\s\-()]{6,}$/.test(phone)){ alert('Некорректный телефон'); return; }
+      profile.fullName=fullName; profile.email=email; profile.phone=phone; profile.city=city; profile.birth=birth;
+      saveProfile(profile); applyProfileToView(); setEditing(false);
+    });
+
+    $('#diiaBtn').addEventListener('click',()=>{
+      if(!(profile.fullName && profile.fullName.trim().length>=2)){
+        alert('Сначала укажите имя и фамилию'); setEditing(true); $('#iFullName').focus(); return;
+      }
+      verifiedName=true; applyProfileToView();
+    });
+
+    $('#settingsBtn').addEventListener('click',()=>{ location.href='passenger-settings.html'; });
+
+    /* ========= WHEEL DATEPICKER ========= */
+    const dpSheet = $('#dpSheet'), dpOverlay = $('#dpOverlay'),
+          wDay=$('#wDay'), wMonth=$('#wMonth'), wYear=$('#wYear'),
+          dpToday=$('#dpToday'), dpDone=$('#dpDone'), dpCancel=$('#dpCancel'), dpClear=$('#dpClear'),
+          birthInput = $('#iBirth');
+
+    const monthNames = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+    const YEAR_MIN = 1900, YEAR_MAX = new Date().getFullYear();
+
+    function ymd(y,m,d){ return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}` }
+    function daysInMonth(y,m){ return new Date(y,m,0).getDate() }
+
+    function makeItems(container, arr, fmt=String){
+      container.innerHTML = '<div class="wheel-pad"></div>' +
+        arr.map(v=>`<div class="item" data-v="${v}">${fmt(v)}</div>`).join('') +
+        '<div class="wheel-pad"></div>';
+    }
+
+    function populateAll(y, m){
+      makeItems(wDay, Array.from({length:daysInMonth(y,m)}, (_,i)=>i+1), v=>String(v).padStart(2,'0'));
+      makeItems(wMonth, Array.from({length:12}, (_,i)=>i+1), v=>monthNames[v-1]);
+      const years = Array.from({length: YEAR_MAX - YEAR_MIN + 1}, (_,i)=>YEAR_MIN+i);
+      makeItems(wYear, years, v=>v);
+    }
+
+    function centerTo(container, value){
+      const el = container.querySelector(`.item[data-v="${value}"]`);
+      if(!el) return;
+      const top = el.offsetTop - (container.clientHeight/2 - el.clientHeight/2);
+      container.scrollTo({top, behavior:'instant'});
+    }
+
+    function getCentered(container){
+      const y = container.scrollTop + container.clientHeight/2;
+      const items = [...container.querySelectorAll('.item')];
+      let best=null, bestDist=1e9;
+      for(const it of items){
+        const mid = it.offsetTop + it.clientHeight/2;
+        const d = Math.abs(mid - y);
+        if(d<bestDist){bestDist=d; best=it;}
+      }
+      return best ? parseInt(best.dataset.v,10) : null;
+    }
+
+    function openSheet(){
+      // исходные значения
+      let y = YEAR_MAX, m = 1, d = 1;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(birthInput.value)){
+        const [yy,mm,dd]=birthInput.value.split('-').map(Number);
+        y=yy; m=mm; d=dd;
+      }
+
+      populateAll(y,m);
+      // слегка отложим центрирование после layout
+      requestAnimationFrame(()=>{
+        centerTo(wYear,y); centerTo(wMonth,m); centerTo(wDay,Math.min(d,daysInMonth(y,m)));
+      });
+
+      dpOverlay.classList.add('open'); dpSheet.classList.add('open');
+      document.body.style.overflow='hidden';
+    }
+    function closeSheet(){ dpOverlay.classList.remove('open'); dpSheet.classList.remove('open'); document.body.style.overflow='' }
+
+    function commit(){
+      const y = getCentered(wYear);
+      const m = getCentered(wMonth);
+      let d = getCentered(wDay);
+      d = Math.min(d, daysInMonth(y,m));
+      birthInput.value = ymd(y,m,d);
+      closeSheet();
+    }
+
+    birthInput.addEventListener('click', openSheet);
+    birthInput.addEventListener('focus', e=>{ e.target.blur(); openSheet(); });
+    dpOverlay.addEventListener('click', closeSheet);
+    dpCancel.addEventListener('click', closeSheet);
+    dpDone.addEventListener('click', commit);
+    dpClear.addEventListener('click', ()=>{ birthInput.value=''; closeSheet(); });
+    dpToday.addEventListener('click', ()=>{
+      const t=new Date(); populateAll(t.getFullYear(), t.getMonth()+1);
+      requestAnimationFrame(()=>{
+        centerTo(wYear,t.getFullYear()); centerTo(wMonth,t.getMonth()+1); centerTo(wDay,t.getDate());
+      });
+    });
+
+    // авто-подгон дней при прокрутке года/месяца
+    let recalibrateTimer=null;
+    function recalibrateDays(){
+      const y=getCentered(wYear), m=getCentered(wMonth);
+      const targetDay=getCentered(wDay)||1;
+      const prevCount=wDay.querySelectorAll('.item').length;
+      const newCount=daysInMonth(y,m);
+      if(newCount+2 !== prevCount){ // +2 из-за .wheel-pad сверху/снизу
+        const topBefore = wDay.scrollTop;
+        makeItems(wDay, Array.from({length:newCount}, (_,i)=>i+1), v=>String(v).padStart(2,'0'));
+        requestAnimationFrame(()=> centerTo(wDay, Math.min(targetDay,newCount)) );
+      }
+    }
+    [wYear,wMonth].forEach(w=>{
+      w.addEventListener('scroll', ()=>{
+        clearTimeout(recalibrateTimer);
+        recalibrateTimer=setTimeout(recalibrateDays, 80);
+      }, {passive:true});
+    });
+
+    /* ===== init ===== */
+    applyProfileToView();
+  </script>
+</body>
+</html>

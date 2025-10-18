@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8" />
+<title>Supabase check</title>
+
+<body style="font:16px/1.4 system-ui; padding:20px; background:#0b0f12; color:#eaf2ff">
+  <h1>Supabase подключение</h1>
+  <pre id="out">Стартую…</pre>
+
+  <!-- 1) Основной CDN -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    crossorigin="anonymous"
+    onload="window._sbLoadedFrom = 'jsdelivr'"
+    onerror="document.getElementById('out').textContent='❌ CDN jsDelivr не загрузился — пробую fallback…';">
+  </script>
+
+  <!-- 2) Fallback CDN (UMD), сработает, если первый не дал window.supabase -->
+  <script>
+    // Если через 800мс глобальной переменной нет — подгружаем UMD сборку с unpkg
+    setTimeout(() => {
+      if (!window.supabase) {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+        s.crossOrigin = 'anonymous';
+        s.onload = () => (window._sbLoadedFrom = 'unpkg-umd');
+        s.onerror = () => (document.getElementById('out').textContent = '❌ Fallback unpkg тоже не загрузился. Проверь блокировщики (Brave Shields/uBlock/VPN).');
+        document.head.appendChild(s);
+      }
+    }, 800);
+  </script>
+
+  <!-- 3) Логика проверки -->
+  <script>
+    const out = (t) => (document.getElementById('out').textContent = t);
+
+    const SUPABASE_URL = 'https://hgpeyrkvxsqacyfnkabi.supabase.co';  // <-- твой URL
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhncGV5cmt4dnNxYWN5Zm5rYWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxODIwMzMsImV4cCI6MjA3NTc1ODAzM30.wx-Qj76YbMxHuY9jnMv8DpVeel4j0yN7gwoZcd1ImLU';        // <-- твой anon key
+
+    async function waitForSDK(timeoutMs = 5000) {
+      const t0 = Date.now();
+      while (!window.supabase) {
+        await new Promise(r => setTimeout(r, 100));
+        if (Date.now() - t0 > timeoutMs) throw new Error('SDK не появился (timeout).');
+      }
+      return window.supabase;
+    }
+
+    (async () => {
+      try {
+        out('⏳ Жду загрузку SDK…');
+        const sbLib = await waitForSDK();
+
+        out(`✅ SDK загружен (${window._sbLoadedFrom || 'unknown'}) — проверяю API…`);
+        // лёгкая проверка доступности API
+        const health = await fetch(`${SUPABASE_URL}/auth/v1/health`).then(r => r.status).catch(() => 0);
+        if (health !== 200) {
+          out(`⚠️ /auth/v1/health вернул статус ${health}. Возможны блокировки сети/CORS. Но попробуем создать клиента…`);
+        } else {
+          out('✅ API health 200 — создаю клиента…');
+        }
+
+        const sb = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const { data, error } = await sb.auth.getSession();
+        out((error ? '❌ Ошибка SDK' : '✅ Всё ок') +
+            `\nИсточник SDK: ${window._sbLoadedFrom || 'unknown'}` +
+            `\nОтвет getSession:\n` + JSON.stringify({ data, error }, null, 2));
+        console.log({ data, error });
+      } catch (e) {
+        out('❌ Исключение: ' + e.message);
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>

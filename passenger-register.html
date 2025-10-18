@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Регистрация — RideNow</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Твой клиент и хелперы -->
+  <script src="/js/supa.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/auth.js"></script>
+
+  <style>
+    :root{
+      --glass-1: rgba(14,21,26,.55);
+      --glass-2: rgba(14,21,26,.35);
+      --ink:#f3f7ff; --muted:#c4ceda; --stroke:rgba(255,255,255,.18);
+      --accent:#ffb668; --accent-2:#9de9d7; --mint:#a8ffd8;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--ink);
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+        url("image.png") center/cover no-repeat fixed;
+      -webkit-text-size-adjust:100%;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+
+    .app{min-height:100%;display:flex;align-items:flex-start;justify-content:center;padding:18px 12px 40px}
+    .card{
+      width:min(760px,96vw);
+      border-radius:22px; padding:16px;
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      border:1px solid var(--stroke);
+      box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
+    .scroll{max-height:100%;overflow:auto}
+    .inner{max-width:640px;margin:0 auto}
+
+    /* ====== верхняя строка как в index.html ====== */
+    .topbar{display:flex;align-items:center;justify-content:space-between;min-height:36px;padding:2px 4px}
+    .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
+    .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
+
+    .langs{display:flex;gap:6px}
+    .lang-btn{
+      min-width:44px;height:30px;padding:0 10px;border-radius:12px;border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      color:var(--ink);font-weight:800;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .lang-btn.is-active,.lang-btn[aria-pressed="true"]{
+      border:none;color:#0b0f12;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    h1{margin:8px 0 14px;font-size:22px}
+
+    /* роль */
+    .role-tabs{display:flex;gap:8px;margin-bottom:12px}
+    .role-btn{
+      flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+      color:var(--ink); font-weight:800; cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .role-btn.is-active{
+      border:none; color:#0b0f12;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    /* поля/кнопки */
+    .form{display:grid;gap:12px}
+    .field{display:grid;gap:6px}
+    .input{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--stroke);
+      background:rgba(255,255,255,.08); color:var(--ink); font-weight:700; font-size:16px; outline:none;
+    }
+    .input:focus{box-shadow:0 0 0 2px rgba(255,255,255,.18) inset}
+    small{color:var(--muted)}
+    .cta{
+      margin-top:6px; padding:12px 16px; border:none; cursor:pointer; border-radius:14px; font-weight:900;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:#0b0f12;
+      box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    /* фото профиля */
+    .profile-photo-wrapper{display:grid;place-items:center}
+    .profile-photo-label{
+      width:148px;height:148px;border-radius:999px;border:2px dashed rgba(255,255,255,.35);
+      display:grid;place-items:center;background-size:cover;background-position:center;
+      background-color:rgba(255,255,255,.06); color:#e9f2ff; font-weight:900;
+    }
+
+    /* пол */
+    .gender-buttons{display:flex;gap:8px}
+    .gender-btn{
+      flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+      color:var(--ink);font-weight:800;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)
+    }
+    .gender-btn.active{
+      border:none;color:#0b0f12;background:linear-gradient(180deg,var(--accent),var(--accent-2));
+      box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6)
+    }
+
+    /* авто фото (3 шт) */
+    .car-title{margin:8px 0 4px}
+    .car-photos-title{font-weight:900;margin:6px 0}
+    .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .photo-item{border:1px solid var(--stroke);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.05)}
+    .photo-head{padding:8px 10px;font-weight:800;border-bottom:1px solid rgba(255,255,255,.12)}
+    .photo-body{height:130px;display:grid;place-items:center}
+    .ph-box{width:100%;height:100%;background:rgba(255,255,255,.06);border-radius:6px}
+    .ph-preview{width:100%;height:100%;object-fit:cover;border-radius:6px}
+
+    /* Тумблер */
+    .switch{display:flex;align-items:center;gap:10px;user-select:none}
+    .switch input{position:absolute;opacity:0;pointer-events:none}
+    .track{
+      width:56px;height:28px;border-radius:999px;border:1px solid var(--stroke);
+      position:relative;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.15);transition:background .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .thumb{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#0b0f12;box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .18s ease}
+    .switch input:checked + .track{background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+    .switch input:checked + .track .thumb{ transform:translateX(28px) }
+
+    /* ====== Колесо-пикер ====== */
+    .rn-sheet{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.6));backdrop-filter:blur(6px);z-index:999}
+    .rn-sheet.is-open{display:flex}
+    .rn-card{width:min(920px,96vw);border-radius:22px;padding:18px;background:linear-gradient(180deg, rgba(14,21,26,.85), rgba(14,21,26,.8));border:1px solid var(--stroke);box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05)}
+    .rn-title{font-weight:900;text-align:center;font-size:22px;margin:4px 0 12px}
+    .rn-tray{position:relative;border-radius:18px;background:linear-gradient(180deg,#151c24,#0f151c);border:1px solid var(--stroke);box-shadow:inset 0 16px 40px rgba(0,0,0,.5);padding:14px}
+    .rn-center-bar{position:absolute;left:14px;right:14px;top:calc(50% - 28px);height:56px;pointer-events:none;border-radius:14px;background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:0 8px 22px rgba(0,0,0,.45) inset, 0 4px 16px rgba(0,0,0,.25);opacity:.95}
+    .rn-fade-top,.rn-fade-bot{position:absolute;left:14px;right:14px;height:62px;pointer-events:none;border-radius:16px}
+    .rn-fade-top{top:14px;background:linear-gradient(180deg,#0b1117,transparent)}
+    .rn-fade-bot{bottom:14px;background:linear-gradient(0deg,#0b1117,transparent)}
+    .rn-wheels{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:18px}
+    .rn-wheel{height:300px;overflow:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:y mandatory;padding:4px 10px;scrollbar-width:none;transform:scaleY(-1)}
+    .rn-wheel::-webkit-scrollbar{width:0;height:0}
+    .rn-item{scroll-snap-align:center;min-height:56px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#c9d6ea;opacity:.55;transform:scaleY(-1) scale(.96);transition:opacity .12s, transform .12s, color .12s;user-select:none}
+    .rn-item.sel{color:#0b0f12;opacity:1;transform:scaleY(-1) scale(1.06)}
+    .rn-labels{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:18px;margin-top:6px;color:var(--muted);font-size:12px;font-weight:800;text-align:center}
+    .rn-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:14px}
+    .rn-out{margin-right:auto;color:var(--muted);font-weight:800}
+    .rn-btn{min-width:116px;padding:12px 16px;border-radius:999px;font-weight:900;cursor:pointer;border:1px solid var(--stroke);color:var(--ink);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02))}
+    .rn-btn.ok{border:none;color:#0b0f12;background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:0 8px 20px rgba(0,0,0,.45)}
+
+    .bottom{margin-top:8px;color:var(--muted);text-align:center}
+    a{color:#ffd59b;text-decoration:none}
+
+    @media (max-width:640px){
+      .rn-wheels{grid-template-columns:1fr 1fr 1fr}
+      .rn-item{font-size:20px}
+      .photo-grid{grid-template-columns:1fr 1fr}
+    }
+
+    /* ===== Только это: убрать стрелочки у "Год выпуска" ===== */
+    #carYear::-webkit-outer-spin-button,
+    #carYear::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    #carYear { -moz-appearance: textfield; appearance: textfield; }
+  </style>
+</head>
+<body>
+
+<main class="app">
+  <section class="card" role="dialog" aria-labelledby="title">
+    <div class="scroll">
+      <div class="inner">
+
+        <!-- Верхняя строка (как на index.html) -->
+        <div class="topbar">
+          <div class="brand"><span class="dot"></span><span>RideNow</span></div>
+          <div class="langs" role="tablist" aria-label="Выбор языка">
+            <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
+            <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
+            <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
+
+        <h1 id="title">Создать аккаунт</h1>
+
+        <!-- Выбор роли -->
+        <nav class="role-tabs" aria-label="Выбор роли">
+          <button class="role-btn is-active" type="button" data-role="passenger">Я пассажир</button>
+          <button class="role-btn" type="button" data-role="driver">Я водитель</button>
+        </nav>
+
+        <form id="registerForm" class="form" enctype="multipart/form-data">
+          <!-- Фото профиля -->
+          <div class="profile-photo-wrapper">
+            <input type="file" id="profile-photo" accept="image/*" hidden>
+            <label for="profile-photo" class="profile-photo-label">
+              <span data-i18n="profile-text">Загрузите фото</span>
+            </label>
+          </div>
+
+          <!-- ФИО/контакты -->
+          <label class="field">Фамилия Имя <small>(будет отображаться только имя)</small>
+            <input id="fullName" type="text" class="input" placeholder="Иван Иванов" required autocomplete="name">
+          </label>
+          <label class="field">Email
+            <input id="email" type="email" class="input" placeholder="email@example.com" required autocomplete="email" inputmode="email">
+          </label>
+          <label class="field">Телефон
+            <input id="phone" type="tel" class="input" placeholder="+380XXXXXXXXX" required autocomplete="tel" inputmode="tel">
+          </label>
+          <label class="field">Пароль
+            <input id="pass" type="password" class="input" placeholder="Введите пароль" required>
+          </label>
+          <label class="field">Подтверждение пароля
+            <input id="pass2" type="password" class="input" placeholder="Повторите пароль" required>
+          </label>
+
+          <!-- Дата -->
+          <label class="field">Дата рождения
+            <input id="birthdate" type="text" class="input modern-date" placeholder="ДД.ММ.ГГГГ" readonly required>
+          </label>
+
+          <!-- Пол -->
+          <div class="field">
+            <span>Пол</span>
+            <div class="gender-buttons">
+              <button type="button" id="male" class="gender-btn male">Мужчина</button>
+              <button type="button" id="female" class="gender-btn female">Женщина</button>
+            </div>
+            <input type="hidden" name="gender" id="gender" value="">
+          </div>
+
+          <!-- Город -->
+          <label class="field">Город проживания
+            <input id="city" type="text" class="input" placeholder="Киев" required autocomplete="address-level2">
+          </label>
+
+          <!-- Водитель (показывается при выборе роли) -->
+          <div id="driverFields" style="display:none;">
+            <h2 class="car-title">Данные автомобиля</h2>
+            <label class="field">Марка автомобиля
+              <input id="carBrand" type="text" class="input" placeholder="Toyota">
+            </label>
+            <label class="field">Модель
+              <input id="carModel" type="text" class="input" placeholder="Camry">
+            </label>
+            <label class="field">Год выпуска
+              <input id="carYear" type="number" class="input" placeholder="2020" inputmode="numeric" pattern="[0-9]*">
+            </label>
+            <label class="field">Цвет
+              <input id="carColor" type="text" class="input" placeholder="Черный">
+            </label>
+            <label class="field">Гос. номер
+              <input id="carPlate" type="text" class="input" placeholder="АА1234ВС">
+            </label>
+
+            <h3 class="car-photos-title">Фото автомобиля</h3>
+            <div class="photo-grid">
+              <div class="photo-item">
+                <div class="photo-head">Лицевая сторона</div>
+                <div class="photo-body"><div id="phFront" class="ph-box"></div></div>
+                <input id="fileFront" type="file" accept="image/*" hidden>
+              </div>
+              <div class="photo-item">
+                <div class="photo-head">Переднее сиденье</div>
+                <div class="photo-body"><div id="phFrontSeats" class="ph-box"></div></div>
+                <input id="fileFrontSeats" type="file" accept="image/*" hidden>
+              </div>
+              <div class="photo-item">
+                <div class="photo-head">Заднее сиденье</div>
+                <div class="photo-body"><div id="phRearSeats" class="ph-box"></div></div>
+                <input id="fileRearSeats" type="file" accept="image/*" hidden>
+              </div>
+            </div>
+          </div>
+
+          <!-- Согласие — тумблер -->
+          <div class="helpers">
+            <label class="switch">
+              <input id="terms" type="checkbox" required>
+              <span class="track"><span class="thumb"></span></span>
+              <span class="switch-label">Принимаю правила сервиса</span>
+            </label>
+          </div>
+
+          <button class="cta" type="submit">Создать аккаунт</button>
+        </form>
+
+        <div class="bottom">Уже есть аккаунт? <a href="index.html">Войти</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== колесо-пикер ===== -->
+<div class="rn-sheet" id="rnSheet" aria-hidden="true">
+  <div class="rn-card">
+    <div class="rn-title">Выберите дату</div>
+
+    <div class="rn-tray">
+      <div class="rn-center-bar" aria-hidden="true"></div>
+      <div class="rn-fade-top" aria-hidden="true"></div>
+      <div class="rn-fade-bot" aria-hidden="true"></div>
+
+      <div class="rn-wheels">
+        <div class="rn-wheel" id="wDay"   aria-label="День" tabindex="0"></div>
+        <div class="rn-wheel" id="wMonth" aria-label="Месяц" tabindex="0"></div>
+        <div class="rn-wheel" id="wYear"  aria-label="Год" tabindex="0"></div>
+      </div>
+    </div>
+
+    <div class="rn-labels"><div>День</div><div>Месяц</div><div>Год</div></div>
+
+    <div class="rn-actions">
+      <div class="rn-out" id="rnOut">ДД.ММ.ГГГГ</div>
+      <button class="rn-btn" id="rnCancel">Отмена</button>
+      <button class="rn-btn ok" id="rnOk">Готово</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==== выбор роли (без изменений) ==== */
+const roleButtons = document.querySelectorAll('.role-btn');
+const driverFields = document.getElementById('driverFields');
+roleButtons.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    roleButtons.forEach(b=>b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    driverFields.style.display = (btn.dataset.role === 'driver') ? 'block' : 'none';
+  });
+});
+
+/* ==== фото профиля (без изменений) ==== */
+const profileInput = document.getElementById('profile-photo');
+const profileLabel = document.querySelector('.profile-photo-label');
+const profileText  = document.getElementById('profile-text');
+profileLabel.addEventListener('click', ()=>{ try{ profileInput.value=''; }catch(e){} });
+profileInput.addEventListener('change',e=>{
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    profileLabel.style.backgroundImage = `url(${reader.result})`;
+    profileLabel.style.border = '3px solid var(--mint)';
+    profileText.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ==== пол (без изменений) ==== */
+const maleBtn = document.getElementById('male');
+const femaleBtn = document.getElementById('female');
+const genderInput = document.getElementById('gender');
+[maleBtn,femaleBtn].forEach(b=>{
+  b.addEventListener('click',()=>{
+    maleBtn.classList.remove('active');
+    femaleBtn.classList.remove('active');
+    b.classList.add('active');
+    genderInput.value = b === maleBtn ? 'male' : 'female';
+  });
+});
+
+/* ==== фото авто превью (без изменений) ==== */
+[{ box:'#phFront',      input:'#fileFront' },
+  { box:'#phFrontSeats', input:'#fileFrontSeats' },
+  { box:'#phRearSeats',  input:'#fileRearSeats' },
+].forEach(({box,input})=>{
+  const boxEl = document.querySelector(box);
+  const inpEl = document.querySelector(input);
+  if (!boxEl || !inpEl) return;
+  const resetValue = ()=>{ try{ inpEl.value=''; }catch(e){} };
+  boxEl.addEventListener('mousedown', resetValue, {capture:true});
+  boxEl.addEventListener('touchstart', resetValue, {capture:true, passive:true});
+  boxEl.addEventListener('click', ()=> inpEl.click());
+  inpEl.addEventListener('change', ()=>{
+    const file = inpEl.files && inpEl.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      let img = boxEl.querySelector('img.ph-preview');
+      if (!img){ img = document.createElement('img'); img.className = 'ph-preview'; boxEl.innerHTML = ''; boxEl.appendChild(img); }
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+/* ==== колесо-пикер (без изменений) ==== */
+const birthInput = document.getElementById('birthdate');
+const sheet = document.getElementById('rnSheet');
+const wDay = document.getElementById('wDay');
+const wMonth = document.getElementById('wMonth');
+const wYear = document.getElementById('wYear');
+const rnOut = document.getElementById('rnOut');
+const btnOk = document.getElementById('rnOk');
+const btnCancel = document.getElementById('rnCancel');
+
+const MONTHS = ['Января','Февраля','Марта','Апреля','Мая','Июня','Июля','Августа','Сентября','Октября','Ноября','Декабря'];
+const pad = n => n<10 ? '0'+n : ''+n;
+const daysInMonth = (y,m) => new Date(y,m,0).getDate();
+const now = new Date();
+const YMAX = now.getFullYear(); const YMIN = YMAX - 85;
+let sel = { y: now.getFullYear(), m: now.getMonth()+1, d: now.getDate() };
+
+function openSheet(){ sheet.classList.add('is-open'); sheet.setAttribute('aria-hidden','false'); setTimeout(()=>centerAll(false),60); }
+function closeSheet(){ sheet.classList.remove('is-open'); sheet.setAttribute('aria-hidden','true'); }
+function spacer(){ const s=document.createElement('div'); s.className='rn-item'; s.style.visibility='hidden'; s.innerHTML='&nbsp;'; return s; }
+function realItems(w){ return [...w.querySelectorAll('.rn-item')].filter(n=>n.style.visibility!=='hidden'); }
+function centerNode(w, node, smooth){ const top = node.offsetTop + node.offsetHeight/2 - w.clientHeight/2; w.scrollTo({top: Math.max(0, top), behavior: smooth?'smooth':'auto'}); }
+function selectNode(w,node,smooth){
+  w.querySelectorAll('.rn-item').forEach(n=>n.classList.remove('sel'));
+  node.classList.add('sel'); centerNode(w,node,smooth);
+  const v = Number(node.dataset.value);
+  if(w===wYear){ if(sel.y!==v){ sel.y=v; buildDays(); } }
+  if(w===wMonth){ if(sel.m!==v){ sel.m=v; buildDays(); } }
+  if(w===wDay){ sel.d=v; }
+  rnOut.textContent =` ${pad(sel.d)}.${pad(sel.m)}.${sel.y}`;
+}
+function snap(w){
+  const a = realItems(w); if(!a.length) return;
+  const cy = w.scrollTop + w.clientHeight/2;
+  let pick=a[0], best=1e9;
+  for(const it of a){ const mid=it.offsetTop+it.offsetHeight/2; const d=Math.abs(mid-cy); if(d<best){best=d; pick=it;} }
+  selectNode(w,pick,true);
+}
+function buildYears(){
+  wYear.innerHTML=''; for(let i=0;i<3;i++) wYear.appendChild(spacer());
+  for(let y=YMAX; y>=YMIN; y--){
+    const n=document.createElement('div'); n.className='rn-item'; n.textContent=y; n.dataset.value=y;
+    if(y===sel.y) n.classList.add('sel'); n.onclick=()=>selectNode(wYear,n,true); wYear.appendChild(n);
+  }
+  for(let i=0;i<3;i++) wYear.appendChild(spacer()); snap(wYear);
+}
+function buildMonths(){
+  wMonth.innerHTML=''; for(let i=0;i<3;i++) wMonth.appendChild(spacer());
+  for(let m=12; m>=1; m--){
+    const n=document.createElement('div'); n.className='rn-item'; n.textContent=MONTHS[m-1]; n.dataset.value=m;
+    if(m===sel.m) n.classList.add('sel'); n.onclick=()=>selectNode(wMonth,n,true); wMonth.appendChild(n);
+  }
+  for(let i=0;i<3;i++) wMonth.appendChild(spacer()); snap(wMonth);
+}
+function buildDays(){
+  wDay.innerHTML=''; const cnt=daysInMonth(sel.y,sel.m); sel.d=Math.min(sel.d,cnt);
+  for(let i=0;i<3;i++) wDay.appendChild(spacer());
+  for(let d=cnt; d>=1; d--){
+    const n=document.createElement('div'); n.className='rn-item'; n.textContent=pad(d); n.dataset.value=d;
+    if(d===sel.d) n.classList.add('sel'); n.onclick=()=>selectNode(wDay,n,true); wDay.appendChild(n);
+  }
+  for(let i=0;i<3;i++) wDay.appendChild(spacer()); snap(wDay);
+}
+function centerAll(smooth=true){
+  [wDay,wMonth,wYear].forEach(w=>{ const n=w.querySelector('.rn-item.sel'); if(n) centerNode(w,n,smooth); });
+}
+buildYears(); buildMonths(); buildDays(); rnOut.textContent =` ${pad(sel.d)}.${pad(sel.m)}.${sel.y}`;
+[wDay,wMonth,wYear].forEach(w=>{
+  let t; w.addEventListener('scroll', ()=>{ clearTimeout(t); t=setTimeout(()=>snap(w),110); }, {passive:true});
+  w.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowDown' && e.key!=='ArrowUp') return;
+    e.preventDefault();
+    const a=realItems(w); if(!a.length) return;
+    let i=a.findIndex(n=>n.classList.contains('sel')); if(i<0) i=0;
+    i += e.key==='ArrowDown'?1:-1; i=Math.max(0,Math.min(a.length-1,i));
+    selectNode(w,a[i],true);
+  });
+});
+if (birthInput){
+  birthInput.addEventListener('click', openSheet);
+  birthInput.addEventListener('focus', (e)=>{ e.preventDefault(); openSheet(); birthInput.blur(); });
+}
+btnCancel.addEventListener('click', closeSheet);
+btnOk.addEventListener('click', ()=>{
+  birthInput.value = rnOut.textContent;
+  const [d,m,y] = rnOut.textContent.split('.');
+  birthInput.dataset.iso = `${y}-${m}-${d}`;
+  closeSheet();
+});
+sheet.addEventListener('click', (e)=>{ if (e.target===sheet) closeSheet(); });
+
+/* ==== сабмит (без изменений) ==== */
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (document.getElementById('pass').value !== document.getElementById('pass2').value) { alert('Пароли не совпадают'); return; }
+
+  const profile = {
+    role: (document.querySelector('.role-btn.is-active')?.dataset.role) || 'passenger',
+    fullName: document.getElementById('fullName').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    birthDisplay: document.getElementById('birthdate').value,
+    birthISO: document.getElementById('birthdate').dataset.iso || null,
+    gender: document.getElementById('gender').value || null,
+    city: document.getElementById('city').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  const readerDataURL = f => new Promise(res=>{ if(!f) return res(null); const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+
+  const profFile = document.getElementById('profile-photo').files[0];
+  profile.profilePhoto = await readerDataURL(profFile);
+
+  if (profile.role === 'driver') {
+    const files = {
+      front:       document.getElementById('fileFront').files[0],
+      frontSeats:  document.getElementById('fileFrontSeats').files[0],
+      rearSeats:   document.getElementById('fileRearSeats').files[0],
+    };
+    profile.vehicle = {
+      brand: document.getElementById('carBrand').value.trim(),
+      model: document.getElementById('carModel').value.trim(),
+      year:  document.getElementById('carYear').value.trim(),
+      color: document.getElementById('carColor').value.trim(),
+      plate: document.getElementById('carPlate').value.trim(),
+      photos: {
+        front:       await readerDataURL(files.front),
+        frontSeats:  await readerDataURL(files.frontSeats),
+        rearSeats:   await readerDataURL(files.rearSeats),
+      }
+    };
+  }
+
+  try { localStorage.setItem('ridenow_profile', JSON.stringify(profile)); }
+  catch { alert('Слишком большие фото — уменьшите размер'); return; }
+
+  const target = profile.role === 'driver' ? 'profile-driver.html' : 'profile-passenger.html';
+  location.href = target;
+});
+
+/* ==== Языковые кнопки: только инициализация (как просил) ==== */
+(function(){
+  const btns = document.querySelectorAll('.langs .lang-btn');
+  function applyAll(){
+    if (window.RN_I18N && typeof RN_I18N.apply === 'function'){ RN_I18N.apply(document); }
+  }
+  function set(lang){
+    btns.forEach(b=>{
+      const on = b.dataset.lang===lang;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on?'true':'false');
+    });
+    if (window.RN_I18N && typeof RN_I18N.set === 'function') RN_I18N.set(lang);
+    document.documentElement.lang = lang;
+    applyAll();
+  }
+  btns.forEach(b=>b.addEventListener('click', ()=> set(b.dataset.lang)));
+  set((window.RN_I18N && typeof RN_I18N.get==='function') ? RN_I18N.get() : (document.documentElement.lang || 'ru'));
+})();
+</script>
+</body>
+</html> 

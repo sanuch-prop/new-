@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Supabase: вход / регистрация</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{background:#0b0f12;color:#eaf2ff;font-family:system-ui;display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px}
+    input{width:320px;max-width:90vw;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#1a2330;color:#fff}
+    button{width:320px;max-width:90vw;padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,#ffb668,#9de9d7);color:#0b0f12;font-weight:800;cursor:pointer}
+    pre{max-width:90vw;white-space:pre-wrap;word-break:break-word;background:#0f1622;border:1px solid rgba(255,255,255,.18);padding:12px;border-radius:12px}
+  </style>
+</head>
+<body>
+  <h2>Supabase: вход / регистрация</h2>
+  <input id="email" placeholder="Email" type="email" />
+  <input id="password" placeholder="Пароль" type="password" />
+
+  <button onclick="signUp()">Регистрация</button>
+  <button onclick="signIn()">Войти</button>
+  <button onclick="getUser()">Проверить сессию</button>
+  <button onclick="logOut()">Выйти</button>
+
+  <pre id="out">…</pre>
+
+<script>
+  const SUPABASE_URL = 'https://hgpeyrkxvsqacyfnkabi.supabase.co'; // без / в конце
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhncGV5cmt4dnNxYWN5Zm5rYWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxODIwMzMsImV4cCI6MjA3NTc1ODAzM30.wx-Qj76YbMxHuY9jnMv8DpVeel4j0yN7gwoZcd1ImLU';
+
+  // Диагностика возможных невидимых символов
+  console.log('URL starts https://', SUPABASE_URL.startsWith('https://'));
+  console.log('URL charCodes', [...SUPABASE_URL].map(c => c.charCodeAt(0)));
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+
+  const out = document.getElementById('out');
+  const emailInput = document.getElementById('email');
+  const passInput  = document.getElementById('password');
+
+  // Быстрый сетевой health-пинг, чтобы увидеть “Failed to fetch” ещё до auth
+  (async () => {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/auth/v1/health`);
+      out.textContent = `Health: ${r.status} ${r.statusText}`;
+    } catch (e) {
+      out.textContent = 'Health check error: ' + e.message;
+    }
+  })();
+
+  // Для email-подтверждения явно задаём redirect (он должен быть в Allowlist)
+  const redirectTo = 'http://127.0.0.1:5500/dev-checker.html';
+
+  async function signUp(){
+    try {
+      const email = emailInput.value.trim();
+      const password = passInput.value.trim();
+      const { data, error } = await sb.auth.signUp(
+        { email, password },
+        { emailRedirectTo: redirectTo }
+      );
+      out.textContent = error ? ('✖ ' + error.message) : ('✅ Зарегистрирован\n' + JSON.stringify(data, null, 2));
+    } catch (e) {
+      out.textContent = '✖ Exception: ' + e.message;
+    }
+  }
+
+  async function signIn(){
+    try {
+      const email = emailInput.value.trim();
+      const password = passInput.value.trim();
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      out.textContent = error ? ('✖ ' + error.message) : ('✅ Вошёл\n' + JSON.stringify(data, null, 2));
+    } catch (e) {
+      out.textContent = '✖ Exception: ' + e.message;
+    }
+  }
+
+  async function getUser(){
+    const { data, error } = await sb.auth.getUser();
+    out.textContent = error ? ('✖ ' + error.message) : ('👤\n' + JSON.stringify(data, null, 2));
+  }
+
+  async function logOut(){
+    const { error } = await sb.auth.signOut();
+    out.textContent = error ? ('✖ ' + error.message) : '🚪 Вышел';
+  }
+
+  // Логи событий — видно, что делает SDK
+  sb.auth.onAuthStateChange((event, session) => {
+    console.log('Auth event:', event, session);
+  });
+</script>
+</body>
+</html>

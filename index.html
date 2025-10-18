@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Вход — RideNow</title>
+
+  <!-- Supabase SDK v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Твой клиент и хелперы -->
+  <script src="/js/supa.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/auth.js"></script>
+
+  <style>
+    :root{
+      --glass-1: rgba(14,21,26,.55);
+      --glass-2: rgba(14,21,26,.35);
+      --ink:#f3f7ff; --muted:#c4ceda; --stroke:rgba(255,255,255,.18);
+      --accent:#ffb668; --accent-2:#9de9d7;
+
+      --gutter-inline: clamp(14px, 4vw, 24px);
+      --gutter-block: 12px;
+
+      --font:15px;
+      --maxw: 640px;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--ink);
+      font:500 var(--font)/1.25 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+        url("image.png") center/cover no-repeat fixed;
+      -webkit-text-size-adjust:100%;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+      overflow:auto;
+    }
+
+    .app{
+      min-height:100svh;
+      display:flex; align-items:center; justify-content:center;
+      padding-inline:var(--gutter-inline);
+      padding-top:calc(var(--gutter-block) + var(--safe-top));
+      padding-bottom:calc(var(--gutter-block) + var(--safe-bottom));
+    }
+    body.kbd-open .app{ align-items:flex-start; }
+
+    .card{
+      width:100%;
+      max-width:var(--maxw);
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+      backdrop-filter: blur(16px) saturate(140%);
+      padding:12px;
+    }
+
+    .topbar{display:flex;align-items:center;justify-content:space-between;min-height:36px;padding:2px 4px}
+    .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
+    .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
+
+   .langs{display:flex;gap:6px}
+   .lang-btn{
+  min-width:44px;height:30px;padding:0 10px;border-radius:12px;border:1px solid var(--stroke);
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  color:var(--ink);font-weight:800;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+.lang-btn.is-active,.lang-btn[aria-pressed="true"]{
+  border:none;color:#0b0f12;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+    .content{display:flex; flex-direction:column; gap:10px}
+    h1{margin:4px 0 6px; font-size:26px; text-align:center}
+
+    .social{display:grid;gap:8px;margin-top:2px}
+    .sbtn{
+      display:flex;align-items:center;gap:10px;justify-content:center;
+      border:1px solid var(--stroke); border-radius:12px; padding:10px 12px;
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+      color:var(--ink); font-weight:800; cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .icon{
+      width:18px; height:18px;
+      display:inline-block; flex:0 0 18px;
+      margin-right:10px; vertical-align:middle;
+    }
+    /* Google — многоцветный логотип. НЕЛЬЗЯ перекрашивать. */
+    .icon-google{
+      background: center/contain no-repeat url("/img/google-g.svg");
+    }
+    /* Apple — монохром, через mask, берёт цвет текста. */
+    .icon-apple{
+      background-color: currentColor;
+      -webkit-mask: center/contain no-repeat url("/img/apple.svg");
+              mask: center/contain no-repeat url("/img/apple.svg");
+    }
+    /* Текст на кнопках соц-входа светлый — иконка Apple тоже станет светлой */
+    .sbtn{ color:#f3f7ff; }
+    .sep{margin:0;color:var(--muted);text-align:center}
+
+    .field{margin:6px 0}
+    .input{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke);
+      background:rgba(255,255,255,.08); color:var(--ink); font-weight:700; font-size:16px; outline:none;
+    }
+    .input::placeholder{color:rgba(243,247,255,.85)}
+    .input:focus{box-shadow:0 0 0 2px rgba(255,255,255,.18) inset}
+
+    .helpers{display:flex;justify-content:space-between;align-items:center;margin:4px 0;color:var(--muted);gap:10px}
+    .helpers a{color:#ffd59b;text-decoration:none;white-space:nowrap}
+    .switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+    .switch input{position:absolute;opacity:0;pointer-events:none}
+    .track{
+      width:42px;height:24px;border-radius:999px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      position:relative; transition:.2s; box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .thumb{
+      position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:999px;background:#fff;transition:.2s;
+      box-shadow:0 2px 6px rgba(0,0,0,.35);
+    }
+    .switch input:checked + .track{background:linear-gradient(180deg,var(--accent),var(--accent-2))}
+    .switch input:checked + .track .thumb{left:20px;background:#0b0f12}
+
+    .cta-stick{
+      position:sticky;
+      bottom:calc(var(--safe-bottom) + 12px);
+      z-index:10;
+      padding-top:4px;
+      background:linear-gradient(to top, rgba(11,15,18,.35), rgba(11,15,18,0));
+      border-radius:12px;
+      backdrop-filter:saturate(120%);
+    }
+    .cta{
+      width:100%; padding:12px 16px; border:none; cursor:pointer; border-radius:14px; font-weight:900;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:#0b0f12;
+      box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    .foot{
+      margin-top:6px; padding:10px 12px; border:1px solid var(--stroke); border-radius:12px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+      color:var(--muted); text-align:center; line-height:1.2;
+    }
+    .foot a{color:#ffd59b;text-decoration:none}
+    .bottom{margin-top:6px;color:var(--muted);text-align:center}
+    .bottom a{color:#ffd59b;text-decoration:none}
+
+    /* ——— ПЕРЕАДРЕСАЦИЯ (оверлей) ——— */
+    .redir{
+      position:fixed; inset:0; display:none; place-items:center;
+      padding:calc(20px + var(--safe-top)) var(--gutter-inline) calc(20px + var(--safe-bottom));
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+        url("image.png") center/cover no-repeat fixed;
+      z-index:999;
+    }
+    .redir.is-open{ display:grid; animation:fade .24s ease-out both }
+    @keyframes fade{ from{opacity:0} to{opacity:1} }
+
+    .redir-card{
+      width:min(560px, 100%);
+      border-radius:22px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+      backdrop-filter: blur(16px) saturate(140%);
+      padding:20px;
+      text-align:center;
+    }
+    .redir-title{font-size:22px; font-weight:900; margin:0 0 6px}
+    .redir-text{color:var(--muted); margin:0 0 14px}
+    .redir-meta{display:flex;justify-content:center;gap:12px;align-items:center}
+
+    .spinner{
+      width:22px;height:22px;border-radius:999px;border:3px solid rgba(255,255,255,.25);
+      border-top-color:#fff; animation:spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg) } }
+
+    .count{
+      min-width:2ch; font-weight:900; font-size:18px;
+      background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:#0b0f12;
+      padding:4px 10px; border-radius:999px; box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .redir.is-open{ animation:none }
+      .spinner{ animation:none; border-top-color:rgba(255,255,255,.8) }
+    }
+
+    /* Компактные высоты */
+    @media (max-height: 640px){
+      :root{ --font:14px }
+      h1{font-size:24px}
+      .sbtn,.input{padding:9px 11px}
+      .cta{padding:11px 14px}
+      .langs{gap:4px}
+      .lang-btn{min-width:40px;height:28px}
+      .redir-title{font-size:20px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-describedby="live">
+    <section class="card" role="dialog" aria-labelledby="title" id="card">
+<div class="topbar">
+  <div class="brand"><span class="dot"></span><span>RideNow</span></div>
+  <div class="langs" role="tablist" aria-label="Выбор языка">
+    <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
+    <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
+    <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</div>
+
+      <form class="content" id="loginForm" novalidate>
+  <h1 id="title" data-i18n="login_title">Вход</h1>
+
+        <div class="social" aria-label="Войти через">
+          <!-- Google -->
+          <button class="sbtn" type="button" id="googleBtn">
+            <span class="icon icon-google" aria-hidden="true"></span>
+            <span data-i18n="login_with_google">Continue with Google</span>
+          </button>
+          <!-- Apple -->
+          <button class="sbtn" type="button" id="appleBtn">
+            <span class="icon icon-apple" aria-hidden="true"></span>
+            <span data-i18n="login_with_apple">Continue with Apple</span>
+          </button>
+        </div>
+
+  <div class="sep" data-i18n="or_email">или по email</div>
+
+        <label class="field" for="email">
+          <input id="email" class="input" type="email" data-i18n-ph="email_ph" placeholder="email@example.com"
+                 autocomplete="email" inputmode="email" required>
+        </label>
+        <label class="field" for="pass">
+          <input id="pass" class="input" type="password" data-i18n-ph="password_ph" placeholder="Пароль"
+                 autocomplete="current-password" required>
+        </label>
+
+        <div class="helpers">
+          <label class="switch">
+            <input id="remember" type="checkbox" checked>
+            <span class="track"><span class="thumb"></span></span>
+            <span data-i18n="remember_me">Запомнить меня</span>
+          </label>
+          <a href="#" id="restoreLink" data-i18n="forgot">Забыли пароль?</a>
+        </div>
+
+        <div class="cta-stick">
+          <button class="cta" type="submit" id="loginBtn" data-i18n="login_cta">Войти</button>
+        </div>
+
+        <div class="foot" data-i18n="terms_text">
+          Нажимая «Войти», вы принимаете <a href="#" id="termsLink">Условия</a> и <a href="#" id="policyLink">Политику</a>.
+        </div>
+          <!-- error banner -->
+          <div id="errBox" style="display:none; margin-top:8px; padding:10px 12px; border:1px solid rgba(255,255,255,.22); border-radius:12px;
+  background:linear-gradient(180deg, rgba(239,68,68,.18), rgba(239,68,68,.10)); color:#ffecec; font-weight:700;">
+    <div style="margin-bottom:8px;">Неверный email или пароль.</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a id="errRestore" href="/passenger-restore.html" style="padding:8px 12px; border-radius:10px; background:#ffe1e1; color:#0b0f12; font-weight:900; text-decoration:none;">Восстановить пароль</a>
+      <a id="errCreate" href="/passenger-register.html" style="padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.35); color:#ffd59b; font-weight:800; text-decoration:none;">Создать аккаунт</a>
+    </div>
+  </div>
+        <div class="bottom">
+          <span data-i18n="no_acc">Нет аккаунта?</span>
+          <a href="#" id="createLink" data-i18n="create">Создать</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Оверлей переадресации -->
+  <section class="redir" id="redir" aria-hidden="true">
+    <div class="redir-card" role="alertdialog" aria-labelledby="rTitle" aria-describedby="rText">
+      <h2 class="redir-title" id="rTitle" data-i18n="redir_title_connect">Подключаем аккаунт…</h2>
+      <p class="redir-text" id="rText" data-i18n="redir_text_connect">Готовим ваш профиль и синхронизацию c RideNow.</p>
+      <div class="redir-meta" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <span data-i18n="redir_left">Осталось</span>&nbsp;
+          <span class="count" id="count">3</span>&nbsp;
+          <span data-i18n="redir_sec">сек</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live region -->
+  <div id="live" class="sr-only" aria-live="polite" style="position:absolute;left:-9999px;top:auto;height:1px;width:1px;overflow:hidden"></div>
+
+  <script>
+    const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+
+    // ...existing code...
+
+    /* ===== Навигация ===== */
+  const GO_AFTER_LOGIN = '/passenger-search.html';
+
+    const goRegister = () => location.href = '/passenger-register.html';
+    const goRestore  = () => location.href = '/passenger-restore.html';
+    const goTerms    = () => location.href = '/passenger-terms.html';
+    const goPolicy   = () => location.href = '/passenger-policy.html';
+
+    /* ===== Оверлей ===== */
+    const redirEl = $('#redir'), countEl = $('#count'), liveEl = $('#live');
+    let redirTimer;
+    function startRedirect({title='Подключаем аккаунт…', text='Готовим ваш профиль и синхронизацию c RideNow.', seconds=3}){
+      $('#rTitle').textContent = title;
+      $('#rText').textContent  = text;
+      countEl.textContent = String(seconds);
+
+      redirEl.classList.add('is-open');
+      redirEl.setAttribute('aria-hidden','false');
+      document.body.style.pointerEvents = 'none';
+      redirEl.style.pointerEvents = 'auto';
+
+      clearInterval(redirTimer);
+      redirTimer = setInterval(()=>{
+        seconds -= 1;
+        countEl.textContent = String(Math.max(0, seconds));
+        liveEl.textContent  = `Переадресация, осталось ${Math.max(0, seconds)} секунд`;
+        if (seconds <= 0) stopRedirect();
+      }, 1000);
+    }
+    function stopRedirect(){
+      clearInterval(redirTimer);
+      redirEl.classList.remove('is-open');
+      redirEl.setAttribute('aria-hidden','true');
+      document.body.style.pointerEvents = '';
+    }
+
+    /* ===== Supabase: автологин/возврат из OAuth ===== */
+    rnRedirectIfAuthed(GO_AFTER_LOGIN);
+    rnHandleSupabaseRedirect(GO_AFTER_LOGIN);
+
+    /* ===== Сабмит формы входа ===== */
+    const form = $('#loginForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('#email').value.trim();
+      const pass  = $('#pass').value.trim();
+      if(!email || !pass){
+        [$('#email'), $('#pass')].forEach(i=>{
+          if(!i.value.trim()){ i.style.boxShadow = '0 0 0 2px rgba(239,68,68,.55) inset' }
+        });
+        return;
+      }
+      if ($('#remember')?.checked) { try{ localStorage.setItem('remember_me','1'); }catch(e){} }
+      else                         { try{ localStorage.removeItem('remember_me'); }catch(e){} }
+
+      startRedirect({
+        title: 'Входим…',
+        text:  'Проверяем данные, подключаем профиль и синхронизацию.'
+      });
+
+      try{
+        await rnSmartSignIn(email, pass, GO_AFTER_LOGIN);
+      } catch (err) {
+          // Show inline banner instead of alert
+          const box = document.getElementById('errBox');
+          if (String(err?.message || '').toLowerCase().includes('invalid login credentials')) {
+            box.style.display = 'block';
+            // focus the restore button for accessibility
+            document.getElementById('errRestore')?.focus();
+          } else {
+            alert('Ошибка входа: ' + (err?.message || err));
+          }
+      } finally {
+        stopRedirect();
+      }
+    });
+
+    /* ===== Вход через Google / Apple ===== */
+    $('#googleBtn')?.addEventListener('click', async ()=>{
+      startRedirect({
+        title: (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_title_google) || 'Открываем Google…',
+        text:  (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_text_google)  || 'Подключаем аккаунт Google...'
+      });
+      await rnStartOAuth('google', GO_AFTER_LOGIN);
+    });
+    $('#appleBtn')?.addEventListener('click', async ()=>{
+      startRedirect({
+        title: (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_title_apple) || 'Открываем Apple…',
+        text:  (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_text_apple)  || 'Подключаем Apple ID...'
+      });
+      await rnStartOAuth('apple', GO_AFTER_LOGIN);
+    });
+
+    /* ===== Ссылки ===== */
+    $('#restoreLink')?.addEventListener('click', (e) => { e.preventDefault(); goRestore(); });
+    $('#createLink') ?.addEventListener('click', (e) => { e.preventDefault(); goRegister(); });
+    $('#termsLink')  ?.addEventListener('click', (e) => { e.preventDefault(); goTerms(); });
+    $('#policyLink') ?.addEventListener('click', (e) => { e.preventDefault(); goPolicy(); });
+
+    /* ===== Маркер открытой клавиатуры ===== */
+    window.addEventListener('focusin', e => {
+      if (e.target.matches('input, textarea, [contenteditable="true"]')){
+        document.body.classList.add('kbd-open');
+      }
+    });
+    window.addEventListener('focusout', () => {
+      setTimeout(()=>{
+        if (!document.querySelector('input:focus, textarea:focus, [contenteditable="true"]:focus')){
+          document.body.classList.remove('kbd-open');
+        }
+      }, 50);
+    });
+
+    /* ===== Автопрокрутка к фокусу ===== */
+    $$('.input').forEach(el=>{
+      el.addEventListener('focus', ()=> setTimeout(()=> el.scrollIntoView({block:'center', behavior:'smooth'}), 60));
+    });
+  </script>
+</body>
+</html>

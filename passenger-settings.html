@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Настройки — RideNow</title>
+  <style>
+    :root{
+      /* палитра/стек как в проекте */
+      --ink:#eaf2ff; --muted:#a6b5cc; --stroke:rgba(255,255,255,.18);
+      --glass-1:rgba(14,21,26,.55); --glass-2:rgba(14,21,26,.35);
+      --g1:#ffb668; --g2:#9de9d7;
+
+      /* симметричные гуттеры: минимум 14px, на больших шире */
+      --gutter-inline: clamp(14px, 4vw, 24px);
+      --gutter-block: 12px;
+
+      --maxw: 640px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --font: 15px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--ink);
+      font:500 var(--font)/1.25 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.65)),
+        url("image.png") center/cover no-repeat fixed;
+      -webkit-text-size-adjust:100%;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+      overflow:auto; /* страница скроллится, без сжатий карточки */
+    }
+
+    /* контейнер */
+    .app{
+      min-height:100svh;
+      display:flex; align-items:center; justify-content:center;
+      padding-inline:var(--gutter-inline);
+      padding-top:calc(var(--gutter-block) + var(--safe-top));
+      padding-bottom:calc(var(--gutter-block) + var(--safe-bottom));
+    }
+    /* при клавиатуре — тянем вверх, привычно */
+    body.kbd-open .app{ align-items:flex-start; }
+
+    /* карточка */
+    .card{
+      width:100%; max-width:var(--maxw);
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      border:1px solid var(--stroke);
+      border-radius:22px;
+      padding:12px;
+      box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
+
+    /* топ-бар */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      min-height:40px; padding:2px 4px 6px;
+    }
+    .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
+    .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
+    .back{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:12px; text-decoration:none; color:var(--ink);
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      font-weight:800;
+    }
+
+    h1{margin:6px 0 10px; text-align:center; font-size:22px}
+
+    /* группы настроек */
+    .group{
+      margin:10px 0; padding:12px;
+      border:1px solid var(--stroke); border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+    }
+    .group-title{margin:0 0 8px; font-weight:900; letter-spacing:.2px}
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:10px 0;
+      border-bottom:1px solid rgba(255,255,255,.14);
+    }
+    .row:last-child{border-bottom:none}
+    .label{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .label .k{opacity:.9; font-weight:800}
+    .label .s{color:var(--muted); font-size:.95em}
+
+    /* тумблер */
+    .switch{display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none}
+    .switch input{position:absolute; opacity:0; pointer-events:none}
+    .track{
+      width:48px; height:28px; border-radius:999px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      position:relative; transition:.2s; box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .thumb{
+      position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:999px;
+      background:#fff; transition:.2s; box-shadow:0 2px 6px rgba(0,0,0,.35);
+    }
+    .switch input:checked + .track{ background:linear-gradient(180deg,var(--g1),var(--g2)) }
+    .switch input:checked + .track .thumb{ left:23px; background:#0b0f12 }
+
+    /* селекторы/радио «язык» */
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:54px; padding:8px 12px; border-radius:12px;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      color:var(--ink); font-weight:800; cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .pill[aria-pressed="true"]{
+      border:none; color:#0b0f12;
+      background:linear-gradient(180deg,var(--g1),var(--g2));
+      box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    .lang-row{display:flex; gap:8px; flex-wrap:wrap}
+
+    /* ссылки */
+    .link{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:12px; text-decoration:none; color:#ffd59b; font-weight:800;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    }
+
+    /* опасная зона */
+    .danger{
+      border:1px solid rgba(255,80,80,.3);
+      background:linear-gradient(180deg, rgba(255,80,80,.12), rgba(255,255,255,.03));
+    }
+    .danger .link{ color:#ffbdbd; border-color:rgba(255,80,80,.3) }
+
+    /* липкая кнопка снизу */
+    .cta-stick{
+      position:sticky;
+      bottom:calc(var(--safe-bottom) + 12px);
+      z-index:10; padding-top:6px;
+      background:linear-gradient(to top, rgba(11,15,18,.35), rgba(11,15,18,0));
+      border-radius:12px; backdrop-filter:saturate(120%);
+    }
+    .cta{
+      width:100%; padding:12px 16px; border:none; border-radius:14px; cursor:pointer; font-weight:900;
+      color:#0b0f12; background:linear-gradient(180deg,var(--g1),var(--g2));
+      box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    /* модалка подтверждения */
+    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.35); backdrop-filter:blur(2px); z-index:9999}
+    .modal-card{
+      width:min(520px,92vw); border-radius:16px; padding:16px;
+      background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+      border:1px solid var(--stroke);
+      box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+      color:var(--ink);
+    }
+    .modal-actions{display:flex; gap:8px; margin-top:12px; justify-content:flex-end}
+    .btn{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--stroke);
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      color:var(--ink); font-weight:800; cursor:pointer;
+    }
+    .btn.prim{ border:none; color:#0b0f12; background:linear-gradient(180deg,var(--g1),var(--g2)) }
+
+    @media (max-height:640px){
+      :root{ --font:14px }
+      h1{font-size:20px}
+      .cta{padding:11px 14px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card" role="dialog" aria-labelledby="title">
+      <div class="topbar">
+        <a class="back" href="passenger-profile.html">← Назад</a>
+        <div class="brand"><span class="dot"></span><span>RideNow</span></div>
+        <div style="width:82px"></div> <!-- баланс для симметрии -->
+      </div>
+
+      <h1 id="title">Настройки</h1>
+
+      <!-- Уведомления -->
+      <section class="group" aria-labelledby="g-notif">
+        <h2 id="g-notif" class="group-title">Уведомления</h2>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Пуш-уведомления</div>
+            <div class="s">О поездках, статусе водителя, важных событиях</div>
+          </div>
+          <label class="switch">
+            <input id="n-push" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">E-mail</div>
+            <div class="s">Квитанции, безопасность, новости сервиса</div>
+          </div>
+          <label class="switch">
+            <input id="n-email" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">SMS</div>
+            <div class="s">Служебные коды и подтверждения</div>
+          </div>
+          <label class="switch">
+            <input id="n-sms" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Промо и акции</div>
+            <div class="s">Редкие уведомления со скидками</div>
+          </div>
+          <label class="switch">
+            <input id="n-promo" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Безопасность -->
+      <section class="group" aria-labelledby="g-sec">
+        <h2 id="g-sec" class="group-title">Безопасность</h2>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Face ID / Touch ID</div>
+            <div class="s">Быстрый вход по биометрии, если поддерживается</div>
+          </div>
+          <label class="switch">
+            <input id="s-bio" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Двухфакторная защита</div>
+            <div class="s">Подтверждение входа дополнительным кодом</div>
+          </div>
+          <label class="switch">
+            <input id="s-2fa" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Сменить пароль</div>
+            <div class="s">Перейти на страницу смены пароля</div>
+          </div>
+          <a class="link" href="passenger-reset.html">Открыть</a>
+        </div>
+      </section>
+
+      <!-- Приватность -->
+      <section class="group" aria-labelledby="g-privacy">
+        <h2 id="g-privacy" class="group-title">Приватность</h2>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Скрывать номер водителю</div>
+            <div class="s">Звонки проходят через защищённый прокси-номер</div>
+          </div>
+          <label class="switch">
+            <input id="p-mask" type="checkbox" checked />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Аналитика использования</div>
+            <div class="s">Помогает улучшать приложение (без личных данных)</div>
+          </div>
+          <label class="switch">
+            <input id="p-analytics" type="checkbox" />
+            <span class="track"><span class="thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="label">
+            <div class="k">Условия и Политика</div>
+            <div class="s">Правила сервиса и обработка данных</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <a class="link" href="passenger-terms.html">Условия</a>
+            <a class="link" href="passenger-policy.html">Политика</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Язык интерфейса (профиль — можно менять тут) -->
+      <section class="group" aria-labelledby="g-lang">
+        <h2 id="g-lang" class="group-title">Язык интерфейса</h2>
+        <div class="lang-row" role="tablist" aria-label="Выбор языка">
+          <button type="button" class="pill" data-lang="ru" aria-pressed="false">RU</button>
+          <button type="button" class="pill" data-lang="uk" aria-pressed="false">UA</button>
+          <button type="button" class="pill" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </section>
+
+      <!-- Опасная зона -->
+      <section class="group danger" aria-labelledby="g-danger">
+        <h2 id="g-danger" class="group-title">Опасная зона</h2>
+        <div class="row">
+          <div class="label">
+            <div class="k">Удалить аккаунт</div>
+            <div class="s">Без возможности восстановления. Данные будут стерты.</div>
+          </div>
+          <button class="link" id="deleteBtn" type="button">Удалить</button>
+        </div>
+      </section>
+
+      <!-- липкая кнопка -->
+      <div class="cta-stick">
+        <button class="cta" id="saveBtn" type="button">Сохранить изменения</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- модалка удаления -->
+  <div class="modal" id="confirmModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-labelledby="mTitle" aria-describedby="mDesc">
+      <h3 id="mTitle" style="margin:0 0 6px">Подтвердите удаление</h3>
+      <p id="mDesc" style="margin:0;color:var(--muted)">Аккаунт и ваши данные будут удалены без возможности восстановления.</p>
+      <div class="modal-actions">
+        <button class="btn" id="cancelDel" type="button">Отмена</button>
+        <button class="btn prim" id="confirmDel" type="button">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+
+    // ЯЗЫК: RU/UA/EN — хранится в localStorage (как и на логине)
+    const langBtns = $$('.pill');
+    function setLang(code){
+      langBtns.forEach(b=>{
+        const on = b.dataset.lang === code;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      try { localStorage.setItem('ridenow_lang', code); } catch(e){}
+      document.documentElement.lang = code || 'ru';
+    }
+    setLang(localStorage.getItem('ridenow_lang') || 'ru');
+    langBtns.forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+    // НАСТРОЙКИ: простое хранение в localStorage
+    const keys = ['n-push','n-email','n-sms','n-promo','s-bio','s-2fa','p-mask','p-analytics'];
+    function load(){
+      keys.forEach(id=>{
+        const el = document.getElementById(id);
+        try{
+          const v = localStorage.getItem('set_'+id);
+          if (v !== null) el.checked = v === '1';
+        }catch(e){}
+      });
+    }
+    function save(){
+      keys.forEach(id=>{
+        const el = document.getElementById(id);
+        try{ localStorage.setItem('set_'+id, el.checked ? '1' : '0'); }catch(e){}
+      });
+      // лёгкий фидбек
+      const btn = $('#saveBtn');
+      const txt = btn.textContent;
+      btn.textContent = 'Сохранено ✓';
+      btn.disabled = true;
+      setTimeout(()=>{ btn.textContent = txt; btn.disabled = false; }, 1200);
+    }
+    load();
+    $('#saveBtn').addEventListener('click', save);
+
+    // Опасная зона: подтверждение удаления (демо)
+    const modal = $('#confirmModal');
+    function openModal(){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
+    function closeModal(){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+    $('#deleteBtn').addEventListener('click', openModal);
+    $('#cancelDel').addEventListener('click', closeModal);
+    $('#confirmDel').addEventListener('click', ()=>{
+      closeModal();
+      // DEMO: «удалили» и выкинули на вход
+      try { localStorage.clear(); } catch(e){}
+      location.href = 'index.html';
+    });
+    // закрытие по фону/ESC
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.style.display==='flex') closeModal(); });
+
+    // Маркер открытой клавиатуры: просто меняем выравнивание контейнера
+    addEventListener('focusin', e => { if (e.target.matches('input, textarea, [contenteditable="true"]')) document.body.classList.add('kbd-open'); });
+    addEventListener('focusout', () => { setTimeout(()=>{ if (!document.querySelector('input:focus, textarea:focus, [contenteditable=true]:focus')) document.body.classList.remove('kbd-open'); }, 50); });
+  </script>
+</body>
+</html>

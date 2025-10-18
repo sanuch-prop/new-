@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Оплата картой — RideNow</title>
+<style>
+  :root{
+    --ink:#eaf2ff; --muted:#a6b5cc; --stroke:rgba(255,255,255,.18);
+    --glass-1:rgba(14,21,26,.55); --glass-2:rgba(14,21,26,.35);
+    --g1:#ffb668; --g2:#9de9d7; --gutter:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100dvh;margin:0;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+  body{
+    color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.55) 35%,rgba(0,0,0,.45) 60%,rgba(0,0,0,.55)),url("image.png") center/cover fixed;
+    display:grid; grid-template-rows:1fr auto;
+  }
+  main{display:grid; place-items:center; padding:var(--gutter)}
+  .panel{
+    width:min(760px,calc(100vw - var(--gutter)*2));
+    border:1px solid var(--stroke); border-radius:22px;
+    background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+    box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22);
+    padding:16px; backdrop-filter: blur(14px) saturate(140%);
+  }
+  h1{margin:0 0 12px}
+  .trip{border:1px solid var(--stroke); border-radius:12px; padding:10px; text-align:center; opacity:.95}
+  .pill{display:inline-grid; place-items:center; padding:8px 12px; border-radius:14px; font-weight:900; background:linear-gradient(90deg,#ffb668,#9de9d7); color:#072e12; margin:10px 0}
+  .minor{color:#cfe3ff; font-size:14px; margin:-2px 0 8px}
+
+  /* tabs 2×2 */
+  .tabs{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0 10px}
+  .tab{
+    height:44px; border-radius:12px; display:grid; place-items:center; font-weight:900;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+    border:1px solid var(--stroke); color:var(--ink);
+  }
+  .tab.active{
+    outline:2px solid #9de9d7;
+    background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.08));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .tab[disabled]{opacity:.45; filter:grayscale(30%)}
+
+  /* inputs: темнее и без iOS-зума */
+  .label{font-size:12px; color:var(--muted); margin:8px 0 6px}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .inp{
+    width:100%; height:48px; border-radius:12px; border:1px solid var(--stroke);
+    background:linear-gradient(180deg,rgba(20,24,32,.55),rgba(20,24,32,.35)); /* темнее */
+    color:var(--ink); font-weight:700; font-size:16px; /* >=16px — без зума на iOS */
+    padding:0 12px; outline:none;
+  }
+  .inp:focus{box-shadow:0 0 0 2px rgba(157,233,215,.45) inset}
+
+  .cta{margin-top:12px; height:52px; width:100%; border:0; border-radius:14px; cursor:pointer;
+       font-weight:900; font-size:18px; color:#0b0f12; background:linear-gradient(90deg,var(--g1),var(--g2)); box-shadow:0 10px 24px rgba(183,167,255,.25)}
+  .hint{font-size:13px; color:#cfe3ff; margin-top:8px}
+
+  /* bottom nav */
+  .bottom{padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  .bar{display:flex;justify-content:space-around;background:var(--glass-2);border-radius:20px 20px 0 0;padding:8px;backdrop-filter:blur(12px)}
+  .bt{flex:1;text-align:center;color:var(--ink);font-size:12px;text-decoration:none;padding:6px 0}
+  .bt .ico{font-size:18px;display:block}
+  .bt.active{color:var(--g1)}
+</style>
+</head>
+<body>
+  <main>
+    <div class="panel" role="dialog" aria-label="Оплата картой">
+      <h1>Оплата картой</h1>
+      <div class="trip">Киев → Одесса • 16.09.2025</div>
+      <div class="pill">Сервисный сбор: 25 ₴</div>
+      <div class="minor">Водителю наличными при посадке: 550 ₴</div>
+
+      <div class="tabs" role="tablist" aria-label="Метод оплаты">
+        <button class="tab active" id="tCard" aria-selected="true">Картой</button>
+        <button class="tab" id="tMono" disabled>Monobank (скоро)</button>
+        <button class="tab" id="tGpay" disabled>Google Pay (скоро)</button>
+        <button class="tab" id="tApay" disabled>Apple Pay (скоро)</button>
+      </div>
+
+      <div>
+        <div class="label">Номер карты</div>
+        <input class="inp" id="cc_number" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" aria-label="Номер карты" autofocus>
+
+        <div class="row" style="margin-top:8px">
+          <div>
+            <div class="label">Срок (MM/YY)</div>
+            <input class="inp" id="cc_exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" aria-label="Срок действия">
+          </div>
+          <div>
+            <div class="label">CVC</div>
+            <input class="inp" id="cc_cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="CVC" aria-label="CVC">
+          </div>
+        </div>
+
+        <div class="label" style="margin-top:8px">Имя на карте</div>
+        <input class="inp" id="cc_name" autocomplete="cc-name" placeholder="IVAN IVANOV" aria-label="Имя на карте">
+      </div>
+
+      <button class="cta" id="payBtn" aria-label="Забронировать, сервисный сбор 25 гривен">Забронировать 25 ₴</button>
+      <div class="hint">Демо: реальной оплаты нет — после клика покажем экран «Оплачено».</div>
+    </div>
+  </main>
+
+  <nav class="bottom" aria-label="Навигация">
+    <div class="bar">
+      <a class="bt" href="passenger-profile.html"><div class="ico">👤</div>Профиль</a>
+      <a class="bt" href="passenger-wallet.html"><div class="ico">💳</div>Кошелёк</a>
+      <a class="bt active" href="passenger-active.html"><div class="ico">🚗</div>Актуальная</a>
+      <a class="bt" href="passenger-search.html"><div class="ico">🔍</div>Поиск</a>
+    </div>
+  </nav>
+
+<script>
+  // анти-даблклик
+  const payBtn = document.getElementById('payBtn');
+  payBtn.addEventListener('click', ()=> {
+    if (payBtn.disabled) return;
+    payBtn.disabled = true;
+    // имитация перехода на «банк» и обратно
+    setTimeout(()=> location.href='passenger-pay-success.html', 350);
+  });
+
+  // визуально «Картой» активна сразу; другие заблокированы — ничего не делаем
+</script>
+</body>
+</html>

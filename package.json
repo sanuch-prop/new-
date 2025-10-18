@@ -1,0 +1,13 @@
+{
+  "name": "mobilka",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server --port=5500 --host-0.0.0.0  --open=index.html --wait=1000",
+    "stop": "taskikill /F /IM live-server.exe 2>NUL || exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

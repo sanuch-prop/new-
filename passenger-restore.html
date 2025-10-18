@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script>window.RN_I18N_OPTS={mountGlobal:false};</script>
+<script src="/js/i18n.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+// fallback helper if auth.js isn't present or doesn't export rnResetPassword
+if (!window.rnResetPassword) {
+  async function rnResetPassword(email){
+    if(!window.sb?.auth) throw new Error('auth not ready');
+    const redirectTo = window.location.origin + '/passenger-reset.html';
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) throw error;
+    return {};
+  }
+  window.rnResetPassword = rnResetPassword;
+}
+</script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Восстановление — RideNow</title>
+<style>
+html,body{height:100%;margin:0}
+body{
+  overflow:hidden;
+  overscroll-behavior:contain;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+    url("image.png") center/cover no-repeat fixed;
+}
+.app{
+  min-height:100svh;
+  display:flex; align-items:center; justify-content:center;
+  padding-inline:clamp(14px,4vw,24px);
+  padding-top:calc(12px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+}
+.card{
+  max-height:calc(100svh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.card:focus{ outline:none }
+.card a, .card button { text-decoration: none; }
+.card a:focus-visible, .card button:focus-visible{ outline:2px solid rgba(255,255,255,.45); outline-offset:2px; }
+/* Линки-кнопки без подчеркивания, но с видимым focus */
+a.btn, a.cta, .actions a { text-decoration:none !important; }
+a.btn:focus-visible, a.cta:focus-visible, .actions a:focus-visible,
+button.btn:focus-visible, .btn-sec:focus-visible {
+  outline:0;
+  box-shadow:0 0 0 3px rgba(255,255,255,.35);
+  text-decoration:none !important;
+}
+:root{
+  --glass-1: rgba(14,21,26,.55);
+  --glass-2: rgba(14,21,26,.35);
+  --ink:#f3f7ff; --muted:#c4ceda; --stroke:rgba(255,255,255,.18);
+  --accent:#ffb668; --accent-2:#9de9d7;
+  --gutter-inline: clamp(14px, 4vw, 24px);
+  --gutter-block: 12px;
+  --font:15px; --maxw: 640px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  color:var(--ink);
+  font:500 var(--font)/1.25 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.55) 35%, rgba(0,0,0,.45) 60%, rgba(0,0,0,.55)),
+    url("image.png") center/cover no-repeat fixed;
+  -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  overflow:auto;
+}
+.app{
+  min-height:100svh;
+  display:flex; align-items:center; justify-content:center;
+  padding-inline:var(--gutter-inline);
+  padding-top:calc(var(--gutter-block) + var(--safe-top));
+  padding-bottom:calc(var(--gutter-block) + var(--safe-bottom));
+}
+body.kbd-open .app{ align-items:flex-start; }
+
+.card{
+  width:100%; max-width:var(--maxw);
+  border-radius:22px; border:1px solid var(--stroke);
+  background:linear-gradient(180deg,var(--glass-1),var(--glass-2));
+  box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+  backdrop-filter: blur(16px) saturate(140%);
+  padding:12px;
+}
+.topbar{display:flex; align-items:center; justify-content:space-between; min-height:36px; padding:2px 4px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
+.brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
+
+.langs{display:flex;gap:6px}
+.lang-btn{
+  min-width:44px; height:30px; padding:0 10px;
+  border-radius:12px; border:1px solid var(--stroke);
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  color:var(--ink); font-weight:800; cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+.lang-btn.is-active,
+.lang-btn[aria-pressed="true"]{
+  border:none; color:#0b0f12;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.content{display:flex;flex-direction:column;gap:10px}
+h1{margin:4px 0 6px;font-size:24px;text-align:center}
+
+.field{margin:6px 0}
+.input{
+  width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.08);color:var(--ink);font-weight:700;font-size:16px;outline:none;
+}
+.input::placeholder{color:rgba(243,247,255,.85)}
+.input:focus{box-shadow:0 0 0 2px rgba(255,255,255,.18) inset}
+
+.note{color:var(--muted);text-align:center}
+
+.cta-stick{position:sticky;bottom:calc(var(--safe-bottom) + 12px);z-index:10;padding-top:4px;background:linear-gradient(to top, rgba(11,15,18,.35), rgba(11,15,18,0));border-radius:12px;backdrop-filter:saturate(120%)}
+.cta{width:100%;padding:12px 16px;border:none;cursor:pointer;border-radius:14px;font-weight:900;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#0b0f12;box-shadow:0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6)}
+
+.alt{margin-top:6px;color:var(--muted);text-align:center}
+.alt a{color:#ffd59b;text-decoration:none}
+
+.success{
+  display:none;
+  border:1px solid var(--stroke);border-radius:12px;padding:10px 12px;margin-top:4px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  color:var(--muted);text-align:center;
+}
+.success strong{color:#fff}
+.actions{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.btn-sec{padding:8px 12px;border-radius:10px;border:1px solid var(--stroke);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:var(--ink);font-weight:800;cursor:pointer}
+
+@media (max-height:640px){
+  :root{--font:14px}
+  h1{font-size:22px}
+  .input{padding:9px 11px}
+  .cta{padding:11px 14px}
+}
+</style>
+</head>
+<body>
+  <main class="app">
+    <section class="card" role="dialog" aria-labelledby="title">
+      <div class="topbar" aria-label="Хедер карточки">
+        <div class="brand"><span class="dot"></span><span>RideNow</span></div>
+        <div class="langs" role="tablist" aria-label="Выбор языка">
+          <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
+          <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
+          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+      <form class="content" id="restoreForm" novalidate>
+  <!-- error banner -->
+  <div id="errBox" style="display:none; margin-bottom:8px; padding:10px 12px; border:1px solid rgba(255,255,255,.22); border-radius:12px; background:linear-gradient(180deg, rgba(239,68,68,.18), rgba(239,68,68,.10)); color:#ffecec; font-weight:700;" role="alert" aria-live="polite"></div>
+  <h1 id="title" data-i18n="restore_title">Восстановление пароля</h1>
+
+  <p class="note" data-i18n="restore_hint">Укажите e-mail — отправим ссылку для смены пароля.</p>
+
+        <label class="field" for="email">
+          <input id="email" class="input" type="email" data-i18n-ph="email_ph" placeholder="email@example.com" autocomplete="email" inputmode="email" required>
+        </label>
+
+        <div class="cta-stick">
+          <button class="cta" type="submit" id="sendBtn" data-i18n="send_link">Отправить ссылку</button>
+        </div>
+
+        <div class="success" id="successBox" aria-live="polite">
+          <div>Письмо отправлено на <strong id="sentTo"></strong>. Проверьте «Входящие» и «Спам».</div>
+          <div class="actions">
+            <button type="button" class="btn-sec" id="resendBtn" disabled>Отправить ещё раз <span id="t">30</span>s</button>
+            <a class="btn-sec" href="index.html">Назад ко входу</a>
+          </div>
+        </div>
+
+  <p class="alt"><span data-i18n="remembered_q">Вспомнили пароль?</span> <a href="index.html" data-i18n="login_link">Войти</a></p>
+      </form>
+    </section>
+  </main>
+
+<script>
+const $=s=>document.querySelector(s);
+const form=$('#restoreForm'), email=$('#email'), successBox=$('#successBox'), sentTo=$('#sentTo'), resendBtn=$('#resendBtn'), t=$('#t'), errBox=$('#errBox');
+let ticking=null;
+
+// Prefill email from localStorage
+try {
+  const lastEmail = localStorage.getItem('last_email');
+  if (lastEmail) email.value = lastEmail;
+} catch {}
+
+// Redirect if authed
+if (window.rnRedirectIfAuthed) rnRedirectIfAuthed('/passenger-search.html');
+
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  errBox.style.display = 'none';
+  const value = email.value.trim();
+  if(!value || !/^\S+@\S+\.\S+$/.test(value)){
+    errBox.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_bad_email || 'Некорректный email';
+    errBox.style.display = 'block';
+    email.setAttribute('aria-invalid','true');
+    email.focus();
+    return;
+  }
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true; const prevText = btn.textContent; btn.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.sending || 'Отправляем...';
+  try {
+    await rnResetPassword(value);
+    sentTo.textContent = value;
+    successBox.style.display = 'block';
+    localStorage.setItem('last_email', value);
+    startTimer(5);
+    resendBtn.disabled = true;
+    resendBtn.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку';
+    successBox.focus();
+  } catch (err) {
+    // friendly mapping
+    function friendly(e){
+      const m = (e?.message||'').toLowerCase();
+      if(/invalid email/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_bad_email || 'Некорректный email';
+      if(/not found|no user|user not found/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_common || 'Если почта есть — письмо отправлено';
+      if(/rate limit/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_rate || 'Слишком часто. Повторите позже.';
+      return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_common || 'Не удалось отправить письмо. Попробуйте ещё раз.';
+    }
+    errBox.textContent = friendly(err);
+    errBox.style.display = 'block';
+    errBox.focus();
+  } finally {
+    btn.disabled = false; btn.textContent = prevText;
+    email.removeAttribute('aria-invalid');
+  }
+});
+function startTimer(sec){
+  clearInterval(ticking);
+  resendBtn.disabled=true; let left=sec; t.textContent=left;
+  ticking=setInterval(()=>{
+    left--; t.textContent=left;
+    if(left<=0){ clearInterval(ticking); resendBtn.disabled=false; resendBtn.textContent=window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку'; }
+  },1000);
+}
+resendBtn.addEventListener('click',()=>{ resendBtn.textContent=window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку'; startTimer(5); });
+</script>
+</body>
+</html>
