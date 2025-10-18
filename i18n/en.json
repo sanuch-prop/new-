@@ -1,0 +1,112 @@
+{
+  "brand": {
+    "name": "RideNow"
+  },
+  "lang": {
+    "ru": "RU",
+    "uk": "UA",
+    "en": "EN"
+  },
+  "layout": {
+    "cardHeader": "Card header",
+    "languageSwitcher": "Language"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "restorePassword": "Restore password",
+    "createAccount": "Create account"
+  },
+  "auth": {
+    "metaTitle": "Sign in — RideNow",
+    "title": "Sign in",
+    "socialLabel": "Sign in with",
+    "socialGoogle": "Continue with Google",
+    "socialApple": "Continue with Apple",
+    "socialSeparator": "or by email",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "termsLead": "By clicking “Sign in”, you accept our",
+    "termsJoin": "and",
+    "termsEnd": ".",
+    "termsLink": "Terms",
+    "privacyLink": "Privacy",
+    "noAccount": "No account?",
+    "create": "Create",
+    "redirect": {
+      "connectTitle": "Connecting your account…",
+      "connectText": "Preparing your profile and syncing with RideNow.",
+      "googleTitle": "Opening Google…",
+      "googleText": "Connecting your Google account and configuring access to RideNow.",
+      "appleTitle": "Opening Apple…",
+      "appleText": "Connecting Apple ID and configuring access to RideNow.",
+      "signingInTitle": "Signing you in…",
+      "signingInText": "Checking your details and preparing your profile.",
+      "left": "Remaining",
+      "seconds": "sec",
+      "live": "Redirecting, {seconds} seconds left"
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "generic": "Sign-in error: {message}"
+    }
+  },
+  "forms": {
+    "email": {
+      "placeholder": "Enter your email"
+    },
+    "password": {
+      "placeholder": "Enter your password"
+    }
+  },
+  "reset": {
+    "metaTitle": "Change password — RideNow",
+    "title": "Change password",
+    "invalidLink": "The link is invalid or expired.",
+    "requestLink": "Request a new link",
+    "newPasswordPlaceholder": "New password",
+    "confirmPasswordPlaceholder": "Confirm password",
+    "help": "At least 8 characters",
+    "show": "Show",
+    "hide": "Hide",
+    "submit": "Change password",
+    "backToLogin": "Back to sign in",
+    "overlayTitle": "Change password",
+    "overlayText": "Updating your password…",
+    "errors": {
+      "length": "At least 8 characters",
+      "mismatch": "Passwords do not match.",
+      "generic": "Password change error",
+      "noSession": "No session available for password change"
+    }
+  },
+  "resetDone": {
+    "metaTitle": "Password updated — RideNow",
+    "title": "Password updated successfully!",
+    "description": "You can now sign in or go to your profile.",
+    "toProfile": "Go to profile",
+    "toLogin": "Sign in"
+  },
+  "restore": {
+    "metaTitle": "Restore access — RideNow",
+    "title": "Password reset",
+    "hint": "Enter your email — we’ll send a link to reset your password.",
+    "submit": "Send link",
+    "sending": "Sending...",
+    "successPrefix": "Email sent to",
+    "successSuffix": ". Check your inbox and spam folder.",
+    "resend": "Send again",
+    "secondsSuffix": "s",
+    "backToLogin": "Back to sign in",
+    "remembered": "Remembered your password?",
+    "login": "Sign in",
+    "errors": {
+      "invalidEmail": "Invalid email",
+      "notFound": "If the email exists, we’ve sent a message",
+      "rate": "Too many attempts. Try again later.",
+      "generic": "Could not send the email. Please try again."
+    }
+  }
+}

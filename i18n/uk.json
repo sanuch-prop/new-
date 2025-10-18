@@ -1,0 +1,112 @@
+{
+  "brand": {
+    "name": "RideNow"
+  },
+  "lang": {
+    "ru": "RU",
+    "uk": "UA",
+    "en": "EN"
+  },
+  "layout": {
+    "cardHeader": "Шапка картки",
+    "languageSwitcher": "Вибір мови"
+  },
+  "actions": {
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "continue": "Продовжити",
+    "restorePassword": "Відновити пароль",
+    "createAccount": "Створити акаунт"
+  },
+  "auth": {
+    "metaTitle": "Вхід — RideNow",
+    "title": "Вхід",
+    "socialLabel": "Увійти через",
+    "socialGoogle": "Продовжити з Google",
+    "socialApple": "Продовжити з Apple",
+    "socialSeparator": "або за email",
+    "rememberMe": "Запам'ятати мене",
+    "forgotPassword": "Забули пароль?",
+    "signIn": "Увійти",
+    "termsLead": "Натискаючи «Увійти», ви приймаєте",
+    "termsJoin": "та",
+    "termsEnd": ".",
+    "termsLink": "Умови",
+    "privacyLink": "Політику",
+    "noAccount": "Немає акаунта?",
+    "create": "Створити",
+    "redirect": {
+      "connectTitle": "Підключаємо акаунт…",
+      "connectText": "Готуємо ваш профіль і синхронізацію з RideNow.",
+      "googleTitle": "Відкриваємо Google…",
+      "googleText": "Підключаємо акаунт Google та налаштовуємо доступ до RideNow.",
+      "appleTitle": "Відкриваємо Apple…",
+      "appleText": "Підключаємо Apple ID та налаштовуємо доступ до RideNow.",
+      "signingInTitle": "Входимо…",
+      "signingInText": "Перевіряємо дані, підключаємо профіль і синхронізацію.",
+      "left": "Залишилось",
+      "seconds": "сек",
+      "live": "Переадресація, залишилось {seconds} секунд"
+    },
+    "errors": {
+      "invalidCredentials": "Невірний email або пароль.",
+      "generic": "Помилка входу: {message}"
+    }
+  },
+  "forms": {
+    "email": {
+      "placeholder": "Введіть email"
+    },
+    "password": {
+      "placeholder": "Введіть пароль"
+    }
+  },
+  "reset": {
+    "metaTitle": "Зміна пароля — RideNow",
+    "title": "Зміна пароля",
+    "invalidLink": "Посилання недійсне або закінчилось.",
+    "requestLink": "Запросити нове посилання",
+    "newPasswordPlaceholder": "Новий пароль",
+    "confirmPasswordPlaceholder": "Повторіть пароль",
+    "help": "Мінімум 8 символів",
+    "show": "Показати",
+    "hide": "Сховати",
+    "submit": "Змінити пароль",
+    "backToLogin": "Назад до входу",
+    "overlayTitle": "Зміна пароля",
+    "overlayText": "Змінюємо пароль…",
+    "errors": {
+      "length": "Мінімум 8 символів",
+      "mismatch": "Паролі не співпадають.",
+      "generic": "Помилка зміни пароля",
+      "noSession": "Немає сесії для зміни пароля"
+    }
+  },
+  "resetDone": {
+    "metaTitle": "Пароль змінено — RideNow",
+    "title": "Пароль успішно змінено!",
+    "description": "Тепер ви можете увійти або перейти в профіль.",
+    "toProfile": "До профілю",
+    "toLogin": "Увійти"
+  },
+  "restore": {
+    "metaTitle": "Відновлення — RideNow",
+    "title": "Відновлення пароля",
+    "hint": "Вкажіть e-mail — надішлемо посилання для зміни пароля.",
+    "submit": "Надіслати посилання",
+    "sending": "Надсилаємо...",
+    "successPrefix": "Лист надіслано на",
+    "successSuffix": ". Перевірте «Вхідні» та «Спам».",
+    "resend": "Надіслати ще раз",
+    "secondsSuffix": "с",
+    "backToLogin": "Назад до входу",
+    "remembered": "Згадали пароль?",
+    "login": "Увійти",
+    "errors": {
+      "invalidEmail": "Некоректний email",
+      "notFound": "Якщо пошта є — лист надіслано",
+      "rate": "Занадто часто. Повторіть пізніше.",
+      "generic": "Не вдалося надіслати лист. Спробуйте ще раз."
+    }
+  }
+}

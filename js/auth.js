@@ -94,3 +94,22 @@ async function rnRedirectIfAuthed(redirectTo = RN_TARGET) {
   const session = await rnGetSession();
   if (session?.user) window.location.href = redirectTo;
 }
+
+function ensureLegacyBridge(){
+  if (window.I18N && !window.RN_I18N) {
+    window.RN_I18N = {
+      set: lang => window.I18N.setLang(lang),
+      get: () => localStorage.getItem(window.I18N.LS_KEY) || 'ru',
+      apply: () => {},
+      dict: {}
+    };
+  }
+}
+
+ensureLegacyBridge();
+if (!window.RN_I18N) {
+  window.addEventListener('i18n:changed', function legacyBridgeHandler(){
+    ensureLegacyBridge();
+    if (window.RN_I18N) window.removeEventListener('i18n:changed', legacyBridgeHandler);
+  });
+}

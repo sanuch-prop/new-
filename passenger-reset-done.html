@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<script>window.RN_I18N_OPTS={mountGlobal:false};</script>
-<script src="/js/i18n.js"></script>
 <script src="/js/auth.js"></script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Пароль сменён — RideNow</title>
+<title data-i18n="resetDone.metaTitle">Пароль сменён — RideNow</title>
 <style>
 html,body{height:100%;margin:0}
 body{
@@ -77,6 +75,7 @@ body{
 .topbar{display:flex; align-items:center; justify-content:space-between; min-height:36px; padding:2px 4px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
 .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
+.lang-switch{display:flex;gap:6px}
 
 h1{margin:8px 0 6px;font-size:24px}
 p{color:var(--muted)}
@@ -95,26 +94,31 @@ p{color:var(--muted)}
 <body>
   <main class="app">
     <section class="card" role="alertdialog" aria-labelledby="title">
-      <div class="topbar" aria-label="Хедер карточки">
-        <div class="brand"><span class="dot"></span><span>RideNow</span></div>
-        <div class="langs" role="tablist" aria-label="Выбор языка">
-          <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
-          <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
-          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
-        </div>
+      <div class="topbar" aria-label="Хедер карточки" data-i18n-aria-label="layout.cardHeader">
+        <div class="brand"><span class="dot"></span><span data-i18n="brand.name">RideNow</span></div>
+        <nav class="lang-switch" aria-label="Выбор языка" data-i18n-aria-label="layout.languageSwitcher">
+          <button class="lang-btn" type="button" data-lang="ru" aria-pressed="false" data-i18n="lang.ru">RU</button>
+          <button class="lang-btn" type="button" data-lang="uk" aria-pressed="false" data-i18n="lang.uk">UA</button>
+          <button class="lang-btn" type="button" data-lang="en" aria-pressed="false" data-i18n="lang.en">EN</button>
+        </nav>
       </div>
       <div class="bigcheck">✓</div>
-      <h1 id="title" data-i18n="done_title">Пароль успешно изменён!</h1>
-      <p data-i18n="done_desc">Теперь вы можете войти или перейти в профиль.</p>
+      <h1 id="title" data-i18n="resetDone.title">Пароль успешно изменён!</h1>
+      <p data-i18n="resetDone.description">Теперь вы можете войти или перейти в профиль.</p>
 
       <div class="actions">
-        <a class="btn" href="passenger-profile.html" data-i18n="go_profile">В профиль</a>
-        <a class="btn-sec" href="index.html" data-i18n="go_login">Войти</a>
+        <a class="btn" href="passenger-profile.html" data-i18n="resetDone.toProfile">В профиль</a>
+        <a class="btn-sec" href="index.html" data-i18n="resetDone.toLogin">Войти</a>
       </div>
 <script>
 if (window.rnRedirectIfAuthed) rnRedirectIfAuthed('/passenger-search.html');
 </script>
     </section>
   </main>
+  <script src="/js/i18n.js"></script>
+  <script>
+    I18N.init({ allowSwitcher:true });
+    if (window.Supa?.getPreferredLang) I18N.syncWithSupabase('read');
+  </script>
 </body>
 </html>

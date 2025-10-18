@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<script>window.RN_I18N_OPTS={mountGlobal:false};</script>
-<script src="/js/i18n.js"></script>
 <script src="/js/auth.js"></script>
 <script>
 // fallback helper if auth.js isn't present or doesn't export rnResetPassword
@@ -19,7 +17,7 @@ if (!window.rnResetPassword) {
 </script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Восстановление — RideNow</title>
+<title data-i18n="restore.metaTitle">Восстановление — RideNow</title>
 <style>
 html,body{height:100%;margin:0}
 body{
@@ -96,7 +94,7 @@ body.kbd-open .app{ align-items:flex-start; }
 .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
 .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
 
-.langs{display:flex;gap:6px}
+.lang-switch{display:flex;gap:6px}
 .lang-btn{
   min-width:44px; height:30px; padding:0 10px;
   border-radius:12px; border:1px solid var(--stroke);
@@ -151,104 +149,142 @@ h1{margin:4px 0 6px;font-size:24px;text-align:center}
 <body>
   <main class="app">
     <section class="card" role="dialog" aria-labelledby="title">
-      <div class="topbar" aria-label="Хедер карточки">
-        <div class="brand"><span class="dot"></span><span>RideNow</span></div>
-        <div class="langs" role="tablist" aria-label="Выбор языка">
-          <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
-          <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
-          <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
-        </div>
+      <div class="topbar" aria-label="Хедер карточки" data-i18n-aria-label="layout.cardHeader">
+        <div class="brand"><span class="dot"></span><span data-i18n="brand.name">RideNow</span></div>
+        <nav class="lang-switch" aria-label="Выбор языка" data-i18n-aria-label="layout.languageSwitcher">
+          <button class="lang-btn" type="button" data-lang="ru" aria-pressed="false" data-i18n="lang.ru">RU</button>
+          <button class="lang-btn" type="button" data-lang="uk" aria-pressed="false" data-i18n="lang.uk">UA</button>
+          <button class="lang-btn" type="button" data-lang="en" aria-pressed="false" data-i18n="lang.en">EN</button>
+        </nav>
       </div>
       <form class="content" id="restoreForm" novalidate>
   <!-- error banner -->
   <div id="errBox" style="display:none; margin-bottom:8px; padding:10px 12px; border:1px solid rgba(255,255,255,.22); border-radius:12px; background:linear-gradient(180deg, rgba(239,68,68,.18), rgba(239,68,68,.10)); color:#ffecec; font-weight:700;" role="alert" aria-live="polite"></div>
-  <h1 id="title" data-i18n="restore_title">Восстановление пароля</h1>
+  <h1 id="title" data-i18n="restore.title">Восстановление пароля</h1>
 
-  <p class="note" data-i18n="restore_hint">Укажите e-mail — отправим ссылку для смены пароля.</p>
+  <p class="note" data-i18n="restore.hint">Укажите e-mail — отправим ссылку для смены пароля.</p>
 
         <label class="field" for="email">
-          <input id="email" class="input" type="email" data-i18n-ph="email_ph" placeholder="email@example.com" autocomplete="email" inputmode="email" required>
+          <input id="email" class="input" type="email" data-i18n-placeholder="forms.email.placeholder" placeholder="Введите email" autocomplete="email" inputmode="email" required>
         </label>
 
         <div class="cta-stick">
-          <button class="cta" type="submit" id="sendBtn" data-i18n="send_link">Отправить ссылку</button>
+          <button class="cta" type="submit" id="sendBtn">
+            <span id="sendBtnText" data-i18n="restore.submit">Отправить ссылку</span>
+          </button>
         </div>
 
-        <div class="success" id="successBox" aria-live="polite">
-          <div>Письмо отправлено на <strong id="sentTo"></strong>. Проверьте «Входящие» и «Спам».</div>
+        <div class="success" id="successBox" aria-live="polite" tabindex="-1">
+          <div><span data-i18n="restore.successPrefix">Письмо отправлено на</span> <strong id="sentTo"></strong><span data-i18n="restore.successSuffix">. Проверьте «Входящие» и «Спам».</span></div>
           <div class="actions">
-            <button type="button" class="btn-sec" id="resendBtn" disabled>Отправить ещё раз <span id="t">30</span>s</button>
-            <a class="btn-sec" href="index.html">Назад ко входу</a>
+            <button type="button" class="btn-sec" id="resendBtn" disabled>
+              <span id="resendLabel" data-i18n="restore.resend">Отправить ещё раз</span>&nbsp;
+              <span id="resendCountdown"><span id="t">30</span><span data-i18n="restore.secondsSuffix">с</span></span>
+            </button>
+            <a class="btn-sec" href="index.html" data-i18n="restore.backToLogin">Назад ко входу</a>
           </div>
         </div>
 
-  <p class="alt"><span data-i18n="remembered_q">Вспомнили пароль?</span> <a href="index.html" data-i18n="login_link">Войти</a></p>
+  <p class="alt"><span data-i18n="restore.remembered">Вспомнили пароль?</span> <a href="index.html" data-i18n="restore.login">Войти</a></p>
       </form>
     </section>
   </main>
 
+  <div hidden id="i18n-restore-strings">
+    <span id="i18n-restore-error-invalid" data-i18n="restore.errors.invalidEmail">Некорректный email</span>
+    <span id="i18n-restore-error-not-found" data-i18n="restore.errors.notFound">Если почта есть — письмо отправлено</span>
+    <span id="i18n-restore-error-rate" data-i18n="restore.errors.rate">Слишком часто. Повторите позже.</span>
+    <span id="i18n-restore-error-generic" data-i18n="restore.errors.generic">Не удалось отправить письмо. Попробуйте ещё раз.</span>
+    <span id="i18n-restore-sending" data-i18n="restore.sending">Отправляем...</span>
+    <span id="i18n-restore-resend" data-i18n="restore.resend">Отправить ещё раз</span>
+    <span id="i18n-restore-submit" data-i18n="restore.submit">Отправить ссылку</span>
+  </div>
+
 <script>
 const $=s=>document.querySelector(s);
-const form=$('#restoreForm'), email=$('#email'), successBox=$('#successBox'), sentTo=$('#sentTo'), resendBtn=$('#resendBtn'), t=$('#t'), errBox=$('#errBox');
+const textFrom=id=>document.getElementById(id)?.textContent ?? '';
+const form=$('#restoreForm'), email=$('#email'), successBox=$('#successBox'), sentTo=$('#sentTo'), resendBtn=$('#resendBtn'), resendLabel=$('#resendLabel'), resendCountdown=$('#resendCountdown'), countdownValue=$('#t'), errBox=$('#errBox'), sendBtn=$('#sendBtn'), sendBtnText=$('#sendBtnText');
+resendCountdown.hidden = true;
 let ticking=null;
 
-// Prefill email from localStorage
 try {
   const lastEmail = localStorage.getItem('last_email');
   if (lastEmail) email.value = lastEmail;
 } catch {}
 
-// Redirect if authed
 if (window.rnRedirectIfAuthed) rnRedirectIfAuthed('/passenger-search.html');
 
 form.addEventListener('submit',async e=>{
   e.preventDefault();
   errBox.style.display = 'none';
+  errBox.removeAttribute('tabindex');
   const value = email.value.trim();
   if(!value || !/^\S+@\S+\.\S+$/.test(value)){
-    errBox.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_bad_email || 'Некорректный email';
+    errBox.textContent = textFrom('i18n-restore-error-invalid');
     errBox.style.display = 'block';
+    errBox.removeAttribute('tabindex');
     email.setAttribute('aria-invalid','true');
     email.focus();
     return;
   }
-  const btn = form.querySelector('button[type="submit"]');
-  btn.disabled = true; const prevText = btn.textContent; btn.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.sending || 'Отправляем...';
+  sendBtn.disabled = true;
+  sendBtnText.textContent = textFrom('i18n-restore-sending');
   try {
     await rnResetPassword(value);
     sentTo.textContent = value;
     successBox.style.display = 'block';
     localStorage.setItem('last_email', value);
     startTimer(5);
-    resendBtn.disabled = true;
-    resendBtn.textContent = window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку';
     successBox.focus();
   } catch (err) {
-    // friendly mapping
-    function friendly(e){
-      const m = (e?.message||'').toLowerCase();
-      if(/invalid email/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_bad_email || 'Некорректный email';
-      if(/not found|no user|user not found/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_common || 'Если почта есть — письмо отправлено';
-      if(/rate limit/.test(m)) return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_rate || 'Слишком часто. Повторите позже.';
-      return window.RN_I18N?.dict?.[window.RN_I18N.get()]?.err_common || 'Не удалось отправить письмо. Попробуйте ещё раз.';
-    }
-    errBox.textContent = friendly(err);
+    const message = (()=>{
+      const m = (err?.message||'').toLowerCase();
+      if(/invalid email/.test(m)) return textFrom('i18n-restore-error-invalid');
+      if(/not found|no user|user not found/.test(m)) return textFrom('i18n-restore-error-not-found');
+      if(/rate limit/.test(m)) return textFrom('i18n-restore-error-rate');
+      return textFrom('i18n-restore-error-generic');
+    })();
+    errBox.textContent = message;
     errBox.style.display = 'block';
+    errBox.setAttribute('tabindex','-1');
     errBox.focus();
   } finally {
-    btn.disabled = false; btn.textContent = prevText;
+    sendBtn.disabled = false;
+    sendBtnText.textContent = textFrom('i18n-restore-submit');
     email.removeAttribute('aria-invalid');
   }
 });
+
 function startTimer(sec){
   clearInterval(ticking);
-  resendBtn.disabled=true; let left=sec; t.textContent=left;
+  resendBtn.disabled = true;
+  let left = sec;
+  resendCountdown.hidden = false;
+  resendLabel.setAttribute('data-i18n','restore.resend');
+  resendLabel.textContent = textFrom('i18n-restore-resend');
+  countdownValue.textContent = left;
   ticking=setInterval(()=>{
-    left--; t.textContent=left;
-    if(left<=0){ clearInterval(ticking); resendBtn.disabled=false; resendBtn.textContent=window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку'; }
+    left -= 1;
+    const value = Math.max(0,left);
+    countdownValue.textContent = value;
+    if(value<=0){
+      clearInterval(ticking);
+      resendBtn.disabled=false;
+      resendCountdown.hidden = true;
+      resendLabel.setAttribute('data-i18n','restore.submit');
+      resendLabel.textContent = textFrom('i18n-restore-submit');
+    }
   },1000);
 }
-resendBtn.addEventListener('click',()=>{ resendBtn.textContent=window.RN_I18N?.dict?.[window.RN_I18N.get()]?.send_link || 'Отправить ссылку'; startTimer(5); });
+
+resendBtn.addEventListener('click',()=>{
+  startTimer(5);
+});
+</script>
+<script src="/js/i18n.js"></script>
+<script>
+  I18N.init({ allowSwitcher:true });
+  if (window.Supa?.getPreferredLang) I18N.syncWithSupabase('read');
 </script>
 </body>
 </html>

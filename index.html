@@ -4,14 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport"
         content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <title>Вход — RideNow</title>
+  <title data-i18n="auth.metaTitle">Вход — RideNow</title>
 
   <!-- Supabase SDK v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Твой клиент и хелперы -->
   <script src="/js/supa.js"></script>
-  <script src="/js/i18n.js"></script>
   <script src="/js/auth.js"></script>
 
   <style>
@@ -68,7 +67,7 @@
     .brand{display:flex;align-items:center;gap:8px;font-weight:900;opacity:.95}
     .brand .dot{width:8px;height:8px;border-radius:999px;background:#58e0ff;display:inline-block}
 
-   .langs{display:flex;gap:6px}
+   .lang-switch{display:flex;gap:6px}
    .lang-btn{
   min-width:44px;height:30px;padding:0 10px;border-radius:12px;border:1px solid var(--stroke);
   background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
@@ -206,7 +205,7 @@
       h1{font-size:24px}
       .sbtn,.input{padding:9px 11px}
       .cta{padding:11px 14px}
-      .langs{gap:4px}
+      .lang-switch{gap:4px}
       .lang-btn{min-width:40px;height:28px}
       .redir-title{font-size:20px}
     }
@@ -215,39 +214,39 @@
 <body>
   <main class="app" aria-describedby="live">
     <section class="card" role="dialog" aria-labelledby="title" id="card">
-<div class="topbar">
-  <div class="brand"><span class="dot"></span><span>RideNow</span></div>
-  <div class="langs" role="tablist" aria-label="Выбор языка">
-    <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
-    <button class="lang-btn" data-lang="uk" aria-pressed="false">UA</button>
-    <button class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
-  </div>
+<div class="topbar" aria-label="Хедер карточки" data-i18n-aria-label="layout.cardHeader">
+  <div class="brand"><span class="dot"></span><span data-i18n="brand.name">RideNow</span></div>
+  <nav class="lang-switch" role="tablist" aria-label="Выбор языка" data-i18n-aria-label="layout.languageSwitcher">
+    <button class="lang-btn" type="button" data-lang="ru" aria-pressed="false" data-i18n="lang.ru">RU</button>
+    <button class="lang-btn" type="button" data-lang="uk" aria-pressed="false" data-i18n="lang.uk">UA</button>
+    <button class="lang-btn" type="button" data-lang="en" aria-pressed="false" data-i18n="lang.en">EN</button>
+  </nav>
 </div>
 
       <form class="content" id="loginForm" novalidate>
-  <h1 id="title" data-i18n="login_title">Вход</h1>
+        <h1 id="title" data-i18n="auth.title">Вход</h1>
 
-        <div class="social" aria-label="Войти через">
+        <div class="social" aria-label="Войти через" data-i18n-aria-label="auth.socialLabel">
           <!-- Google -->
           <button class="sbtn" type="button" id="googleBtn">
             <span class="icon icon-google" aria-hidden="true"></span>
-            <span data-i18n="login_with_google">Continue with Google</span>
+            <span data-i18n="auth.socialGoogle">Продолжить с Google</span>
           </button>
           <!-- Apple -->
           <button class="sbtn" type="button" id="appleBtn">
             <span class="icon icon-apple" aria-hidden="true"></span>
-            <span data-i18n="login_with_apple">Continue with Apple</span>
+            <span data-i18n="auth.socialApple">Продолжить с Apple</span>
           </button>
         </div>
 
-  <div class="sep" data-i18n="or_email">или по email</div>
+        <div class="sep" data-i18n="auth.socialSeparator">или по email</div>
 
         <label class="field" for="email">
-          <input id="email" class="input" type="email" data-i18n-ph="email_ph" placeholder="email@example.com"
+          <input id="email" class="input" type="email" data-i18n-placeholder="forms.email.placeholder" placeholder="Введите email"
                  autocomplete="email" inputmode="email" required>
         </label>
         <label class="field" for="pass">
-          <input id="pass" class="input" type="password" data-i18n-ph="password_ph" placeholder="Пароль"
+          <input id="pass" class="input" type="password" data-i18n-placeholder="forms.password.placeholder" placeholder="Введите пароль"
                  autocomplete="current-password" required>
         </label>
 
@@ -255,30 +254,33 @@
           <label class="switch">
             <input id="remember" type="checkbox" checked>
             <span class="track"><span class="thumb"></span></span>
-            <span data-i18n="remember_me">Запомнить меня</span>
+            <span data-i18n="auth.rememberMe">Запомнить меня</span>
           </label>
-          <a href="#" id="restoreLink" data-i18n="forgot">Забыли пароль?</a>
+          <a href="#" id="restoreLink" data-i18n="auth.forgotPassword">Забыли пароль?</a>
         </div>
 
         <div class="cta-stick">
-          <button class="cta" type="submit" id="loginBtn" data-i18n="login_cta">Войти</button>
+          <button class="cta" type="submit" id="loginBtn" data-i18n="auth.signIn">Войти</button>
         </div>
 
-        <div class="foot" data-i18n="terms_text">
-          Нажимая «Войти», вы принимаете <a href="#" id="termsLink">Условия</a> и <a href="#" id="policyLink">Политику</a>.
+        <div class="foot">
+          <span data-i18n="auth.termsLead">Нажимая «Войти», вы принимаете</span>
+          &nbsp;<a href="#" id="termsLink" data-i18n="auth.termsLink">Условия</a>&nbsp;
+          <span data-i18n="auth.termsJoin">и</span>&nbsp;
+          <a href="#" id="policyLink" data-i18n="auth.privacyLink">Политику</a><span data-i18n="auth.termsEnd">.</span>
         </div>
-          <!-- error banner -->
-          <div id="errBox" style="display:none; margin-top:8px; padding:10px 12px; border:1px solid rgba(255,255,255,.22); border-radius:12px;
+
+        <div id="errBox" style="display:none; margin-top:8px; padding:10px 12px; border:1px solid rgba(255,255,255,.22); border-radius:12px;
   background:linear-gradient(180deg, rgba(239,68,68,.18), rgba(239,68,68,.10)); color:#ffecec; font-weight:700;">
-    <div style="margin-bottom:8px;">Неверный email или пароль.</div>
+    <div style="margin-bottom:8px;" data-i18n="auth.errors.invalidCredentials">Неверный email или пароль.</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <a id="errRestore" href="/passenger-restore.html" style="padding:8px 12px; border-radius:10px; background:#ffe1e1; color:#0b0f12; font-weight:900; text-decoration:none;">Восстановить пароль</a>
-      <a id="errCreate" href="/passenger-register.html" style="padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.35); color:#ffd59b; font-weight:800; text-decoration:none;">Создать аккаунт</a>
+      <a id="errRestore" href="/passenger-restore.html" style="padding:8px 12px; border-radius:10px; background:#ffe1e1; color:#0b0f12; font-weight:900; text-decoration:none;" data-i18n="actions.restorePassword">Восстановить пароль</a>
+      <a id="errCreate" href="/passenger-register.html" style="padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.35); color:#ffd59b; font-weight:800; text-decoration:none;" data-i18n="actions.createAccount">Создать аккаунт</a>
     </div>
   </div>
         <div class="bottom">
-          <span data-i18n="no_acc">Нет аккаунта?</span>
-          <a href="#" id="createLink" data-i18n="create">Создать</a>
+          <span data-i18n="auth.noAccount">Нет аккаунта?</span>
+          <a href="#" id="createLink" data-i18n="auth.create">Создать</a>
         </div>
       </form>
     </section>
@@ -287,14 +289,14 @@
   <!-- Оверлей переадресации -->
   <section class="redir" id="redir" aria-hidden="true">
     <div class="redir-card" role="alertdialog" aria-labelledby="rTitle" aria-describedby="rText">
-      <h2 class="redir-title" id="rTitle" data-i18n="redir_title_connect">Подключаем аккаунт…</h2>
-      <p class="redir-text" id="rText" data-i18n="redir_text_connect">Готовим ваш профиль и синхронизацию c RideNow.</p>
+      <h2 class="redir-title" id="rTitle" data-i18n="auth.redirect.connectTitle">Подключаем аккаунт…</h2>
+      <p class="redir-text" id="rText" data-i18n="auth.redirect.connectText">Готовим ваш профиль и синхронизацию c RideNow.</p>
       <div class="redir-meta" aria-live="polite">
         <div class="spinner" aria-hidden="true"></div>
         <div>
-          <span data-i18n="redir_left">Осталось</span>&nbsp;
+          <span data-i18n="auth.redirect.left">Осталось</span>&nbsp;
           <span class="count" id="count">3</span>&nbsp;
-          <span data-i18n="redir_sec">сек</span>
+          <span data-i18n="auth.redirect.seconds">сек</span>
         </div>
       </div>
     </div>
@@ -303,8 +305,23 @@
   <!-- Live region -->
   <div id="live" class="sr-only" aria-live="polite" style="position:absolute;left:-9999px;top:auto;height:1px;width:1px;overflow:hidden"></div>
 
+  <div hidden id="i18n-auth-strings">
+    <span id="i18n-auth-redirect-signing-in-title" data-i18n="auth.redirect.signingInTitle">Входим…</span>
+    <span id="i18n-auth-redirect-signing-in-text" data-i18n="auth.redirect.signingInText">Проверяем данные, подключаем профиль и синхронизацию.</span>
+    <span id="i18n-auth-redirect-google-title" data-i18n="auth.redirect.googleTitle">Открываем Google…</span>
+    <span id="i18n-auth-redirect-google-text" data-i18n="auth.redirect.googleText">Подключаем аккаунт Google и настраиваем доступ к RideNow.</span>
+    <span id="i18n-auth-redirect-apple-title" data-i18n="auth.redirect.appleTitle">Открываем Apple…</span>
+    <span id="i18n-auth-redirect-apple-text" data-i18n="auth.redirect.appleText">Подключаем Apple ID и настраиваем доступ к RideNow.</span>
+    <span id="i18n-auth-redirect-live" data-i18n="auth.redirect.live">Переадресация, осталось {seconds} секунд</span>
+    <span id="i18n-auth-error-generic" data-i18n="auth.errors.generic">Ошибка входа: {message}</span>
+  </div>
+
   <script>
     const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+    const textFrom = id => document.getElementById(id)?.textContent ?? '';
+    const fmt = (str, params = {}) => String(str ?? '').replace(/\{(\w+)\}/g, (_, key) =>
+      Object.prototype.hasOwnProperty.call(params, key) ? params[key] : `{${key}}`
+    );
 
     // ...existing code...
 
@@ -319,10 +336,13 @@
     /* ===== Оверлей ===== */
     const redirEl = $('#redir'), countEl = $('#count'), liveEl = $('#live');
     let redirTimer;
-    function startRedirect({title='Подключаем аккаунт…', text='Готовим ваш профиль и синхронизацию c RideNow.', seconds=3}){
+    function startRedirect({ titleKey, textKey, seconds = 3 } = {}){
+      const title = titleKey ? textFrom(titleKey) : textFrom('rTitle');
+      const text  = textKey ? textFrom(textKey) : textFrom('rText');
       $('#rTitle').textContent = title;
       $('#rText').textContent  = text;
-      countEl.textContent = String(seconds);
+      let left = Number(seconds) || 0;
+      countEl.textContent = String(left);
 
       redirEl.classList.add('is-open');
       redirEl.setAttribute('aria-hidden','false');
@@ -330,11 +350,14 @@
       redirEl.style.pointerEvents = 'auto';
 
       clearInterval(redirTimer);
+      const liveTemplate = textFrom('i18n-auth-redirect-live');
+      liveEl.textContent = fmt(liveTemplate, { seconds: Math.max(0, left) });
       redirTimer = setInterval(()=>{
-        seconds -= 1;
-        countEl.textContent = String(Math.max(0, seconds));
-        liveEl.textContent  = `Переадресация, осталось ${Math.max(0, seconds)} секунд`;
-        if (seconds <= 0) stopRedirect();
+        left -= 1;
+        const safe = Math.max(0, left);
+        countEl.textContent = String(safe);
+        liveEl.textContent  = fmt(liveTemplate, { seconds: safe });
+        if (safe <= 0) stopRedirect();
       }, 1000);
     }
     function stopRedirect(){
@@ -342,6 +365,7 @@
       redirEl.classList.remove('is-open');
       redirEl.setAttribute('aria-hidden','true');
       document.body.style.pointerEvents = '';
+      liveEl.textContent = '';
     }
 
     /* ===== Supabase: автологин/возврат из OAuth ===== */
@@ -364,21 +388,19 @@
       else                         { try{ localStorage.removeItem('remember_me'); }catch(e){} }
 
       startRedirect({
-        title: 'Входим…',
-        text:  'Проверяем данные, подключаем профиль и синхронизацию.'
+        titleKey: 'i18n-auth-redirect-signing-in-title',
+        textKey:  'i18n-auth-redirect-signing-in-text'
       });
 
       try{
         await rnSmartSignIn(email, pass, GO_AFTER_LOGIN);
       } catch (err) {
-          // Show inline banner instead of alert
           const box = document.getElementById('errBox');
           if (String(err?.message || '').toLowerCase().includes('invalid login credentials')) {
             box.style.display = 'block';
-            // focus the restore button for accessibility
             document.getElementById('errRestore')?.focus();
           } else {
-            alert('Ошибка входа: ' + (err?.message || err));
+            alert(fmt(textFrom('i18n-auth-error-generic'), { message: err?.message || err }));
           }
       } finally {
         stopRedirect();
@@ -388,15 +410,15 @@
     /* ===== Вход через Google / Apple ===== */
     $('#googleBtn')?.addEventListener('click', async ()=>{
       startRedirect({
-        title: (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_title_google) || 'Открываем Google…',
-        text:  (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_text_google)  || 'Подключаем аккаунт Google...'
+        titleKey: 'i18n-auth-redirect-google-title',
+        textKey:  'i18n-auth-redirect-google-text'
       });
       await rnStartOAuth('google', GO_AFTER_LOGIN);
     });
     $('#appleBtn')?.addEventListener('click', async ()=>{
       startRedirect({
-        title: (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_title_apple) || 'Открываем Apple…',
-        text:  (window.RN_I18N?.dict?.[window.RN_I18N.get()]?.redir_text_apple)  || 'Подключаем Apple ID...'
+        titleKey: 'i18n-auth-redirect-apple-title',
+        textKey:  'i18n-auth-redirect-apple-text'
       });
       await rnStartOAuth('apple', GO_AFTER_LOGIN);
     });
@@ -425,6 +447,11 @@
     $$('.input').forEach(el=>{
       el.addEventListener('focus', ()=> setTimeout(()=> el.scrollIntoView({block:'center', behavior:'smooth'}), 60));
     });
+  </script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    I18N.init({ allowSwitcher:true });
+    if (window.Supa?.getPreferredLang) I18N.syncWithSupabase('read');
   </script>
 </body>
 </html>
